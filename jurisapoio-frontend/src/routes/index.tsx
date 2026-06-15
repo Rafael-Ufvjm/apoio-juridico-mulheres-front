@@ -13,6 +13,7 @@ import { Login } from "../pages/auth/Login";
 import { DashboardVitima } from "../pages/vitima/DashboardVitima";
 import { ChatSeguro } from "../pages/vitima/ChatSeguro";
 import { DashboardAdvogado } from "../pages/advogado/DashboardAdvogado";
+import { DashboardAdmin } from "../pages/admin/DashboardAdmin";
 
 import {
   ProtectedRoute,
@@ -44,6 +45,14 @@ export function AppRoutes() {
             element={
               <ProtectedRoute>
                 <DashboardAdvogado />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard-admin"
+            element={
+              <ProtectedRoute>
+                <DashboardAdmin />
               </ProtectedRoute>
             }
           />

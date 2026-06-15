@@ -36,6 +36,19 @@ export function Login() {
 
   async function handleLoginSubmit(event: React.FormEvent) {
     event.preventDefault();
+
+    // Check admin credentials
+    if (email === "admin@jurisapoio.com.br" && senha === "admin123") {
+      try {
+        await login({ email, senha }, "admin");
+        navigate("/dashboard-admin");
+        return;
+      } catch {
+        alert("Erro ao logar como administrador");
+        return;
+      }
+    }
+
     try {
       if (role === "vitima") {
         await login({
@@ -44,6 +57,34 @@ export function Login() {
         }, "vitima");
         navigate("/dashboard");
       } else {
+        // Validate lawyer credentials and approval status
+        const lawyersData = localStorage.getItem("juris_lawyers");
+        if (lawyersData) {
+          const lawyersList = JSON.parse(lawyersData);
+          const foundLawyer = lawyersList.find((l: any) => l.email === email);
+
+          if (foundLawyer) {
+            if (foundLawyer.senha !== senha) {
+              alert("Senha incorreta!");
+              return;
+            }
+            if (foundLawyer.status === "pending") {
+              alert("Seu cadastro está sob análise. Aguarde a homologação do administrador.");
+              return;
+            }
+            if (foundLawyer.status === "rejected") {
+              alert("Seu cadastro foi recusado ou suspenso pelo administrador.");
+              return;
+            }
+
+            localStorage.setItem("logged_lawyer_email", email);
+            await login({ email, senha }, "advogado");
+            navigate("/dashboard-advogado");
+            return;
+          }
+        }
+
+        // Fallback if not found in list (e.g. fallback to standard logic)
         await login({
           email,
           senha,
@@ -93,7 +134,38 @@ export function Login() {
       setIsVerifyingOab(false);
 
       setTimeout(() => {
-        alert(`Cadastro de Advogado realizado com sucesso!\nOAB ${advOab}/${advUf} validada e regularizada com sucesso no Cadastro Nacional dos Advogados (CNA).`);
+        const existingLawyersStr = localStorage.getItem("juris_lawyers");
+        const existingLawyers = existingLawyersStr ? JSON.parse(existingLawyersStr) : [];
+
+        if (existingLawyers.some((l: any) => l.email === advEmail)) {
+          alert("Este e-mail profissional já está cadastrado!");
+          setOabVerifiedStatus("none");
+          return;
+        }
+
+        const newLawyer = {
+          id: existingLawyers.length + 1,
+          name: advNome,
+          email: advEmail,
+          senha: advSenha,
+          oab: advOab,
+          uf: advUf,
+          specialties: [advEspecialidade],
+          seal: "Aguardando Verificação",
+          experience: "Iniciante",
+          cases: "0",
+          rating: "⭐ 5.0",
+          availability: "48h",
+          color: "var(--wine)",
+          gradient: "linear-gradient(135deg, var(--wine3), var(--wine))",
+          status: "pending"
+        };
+
+        existingLawyers.push(newLawyer);
+        localStorage.setItem("juris_lawyers", JSON.stringify(existingLawyers));
+
+        alert(`Cadastro realizado com sucesso!\nA OAB ${advOab}/${advUf} foi validada no CNA.\n\nIMPORTANTE: Sua conta está aguardando homologação do administrador.`);
+        
         setEmail(advEmail);
         setIsRegistering(false);
         setOabVerifiedStatus("none");
@@ -431,6 +503,9 @@ export function Login() {
               </p>
             </form>
           )}
+        </div>
+        <div style={{ textAlign: "center", padding: "12px", background: "var(--warm)", borderTop: "1px solid var(--border)", fontSize: "11px", color: "var(--mid)", borderBottomLeftRadius: "8px", borderBottomRightRadius: "8px" }}>
+          Homologação / Teste - Admin: <strong>admin@jurisapoio.com.br</strong> | Senha: <strong>admin123</strong>
         </div>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
 interface Lawyer {
@@ -77,6 +77,29 @@ const lawyersData: Lawyer[] = [
 
 export function Lawyers() {
   const [activeFilter, setActiveFilter] = useState("Todos");
+  const [lawyersList, setLawyersList] = useState<Lawyer[]>([]);
+
+  useEffect(() => {
+    const data = localStorage.getItem("juris_lawyers");
+    if (data) {
+      const parsed = JSON.parse(data);
+      const approved = parsed.filter((l: any) => l.status === "approved");
+      const mapped = approved.map((l: any) => {
+        const words = l.name.split(" ").filter((w: string) => {
+          const lower = w.toLowerCase().replace(/[^a-z]/g, "");
+          return lower !== "dr" && lower !== "dra" && lower !== "dr(a)";
+        });
+        const initials = words.map((w: string) => w[0]).join("").substring(0, 2).toUpperCase();
+        return {
+          ...l,
+          avatar: l.avatar || initials || "ADV"
+        };
+      });
+      setLawyersList(mapped);
+    } else {
+      setLawyersList(lawyersData);
+    }
+  }, []);
 
   const filters = [
     "Todos",
@@ -87,8 +110,8 @@ export function Lawyers() {
   ];
 
   const filteredLawyers = activeFilter === "Todos"
-    ? lawyersData
-    : lawyersData.filter(lawyer => 
+    ? lawyersList
+    : lawyersList.filter(lawyer => 
         lawyer.specialties.some(spec => 
           spec.toLowerCase().includes(activeFilter.toLowerCase()) || 
           activeFilter.toLowerCase().includes(spec.toLowerCase())

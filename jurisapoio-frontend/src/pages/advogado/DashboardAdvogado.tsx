@@ -16,6 +16,8 @@ export function DashboardAdvogado() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<"pending" | "my_cases">("pending");
   const [lawyerName, setLawyerName] = useState("Dra. Carla Mendes");
+  const [lawyerOab, setLawyerOab] = useState("187.432");
+  const [lawyerUf, setLawyerUf] = useState("SP");
   
   // Real-time states reading from localStorage to sync with the victim simulation
   const [hasTriageCompleted, setHasTriageCompleted] = useState(false);
@@ -31,6 +33,19 @@ export function DashboardAdvogado() {
     setHasTriageCompleted(triage);
     setTriageUrgency(urgency);
     setIsChatAccepted(accepted);
+
+    // Load active lawyer session details
+    const email = localStorage.getItem("logged_lawyer_email");
+    const lawyersData = localStorage.getItem("juris_lawyers");
+    if (email && lawyersData) {
+      const list = JSON.parse(lawyersData);
+      const found = list.find((l: any) => l.email === email);
+      if (found) {
+        setLawyerName(found.name);
+        setLawyerOab(found.oab);
+        setLawyerUf(found.uf);
+      }
+    }
   }, []);
 
   const handleAcceptCase = (caseId: string) => {
@@ -108,10 +123,15 @@ export function DashboardAdvogado() {
         {/* Sidebar */}
         <div className="dash-sidebar" style={{ backgroundColor: "var(--wine3)" }}>
           <div className="dash-user">
-            <div className="dash-user-avatar" style={{ background: "var(--blue)" }}>CM</div>
+            <div className="dash-user-avatar" style={{ background: "var(--blue)" }}>
+              {lawyerName.split(" ").filter((w: string) => {
+                const lower = w.toLowerCase().replace(/[^a-z]/g, "");
+                return lower !== "dr" && lower !== "dra" && lower !== "dr(a)";
+              }).map((w: string) => w[0]).join("").substring(0, 2).toUpperCase() || "ADV"}
+            </div>
             <div className="dash-user-info">
               <strong>{lawyerName}</strong>
-              <span style={{ fontSize: "11px", opacity: 0.8 }}>OAB/SP 187.432 · Voluntária</span>
+              <span style={{ fontSize: "11px", opacity: 0.8 }}>OAB/{lawyerUf} {lawyerOab} · Voluntária</span>
             </div>
           </div>
           

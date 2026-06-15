@@ -26,7 +26,9 @@ export function Layout() {
             <NavLink to="/" end className={({ isActive }) => isActive ? "active" : ""}>Início</NavLink>
             <NavLink to="/lawyers" className={({ isActive }) => isActive ? "active" : ""}>Advogados</NavLink>
             <NavLink to="/orientacao" className={({ isActive }) => isActive ? "active" : ""}>Orientação</NavLink>
-            {userRole === "advogado" ? (
+            {userRole === "admin" ? (
+              <NavLink to="/dashboard-admin" className={({ isActive }) => isActive ? "active" : ""}>Painel Admin</NavLink>
+            ) : userRole === "advogado" ? (
               <NavLink to="/dashboard-advogado" className={({ isActive }) => isActive ? "active" : ""}>Painel do Advogado</NavLink>
             ) : (
               <NavLink to="/dashboard" className={({ isActive }) => isActive ? "active" : ""}>Minha Área</NavLink>
@@ -54,7 +56,7 @@ export function Layout() {
               <Link to="/login" className="nav-links a" style={{ padding: "6px 14px" }}>Entrar</Link>
             )}
 
-            {userRole !== "advogado" && (
+            {userRole !== "advogado" && userRole !== "admin" && (
               <Link to="/dashboard" className="nav-cta btn">Solicitar Ajuda</Link>
             )}
             <button 
