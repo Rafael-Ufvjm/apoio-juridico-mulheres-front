@@ -64,38 +64,6 @@ export function Home() {
         </div>
       </section>
 
-      {/* TESTIMONIALS */}
-      <section>
-        <div className="section-inner">
-          <div className="section-tag">Depoimentos</div>
-          <h2 className="section-title">O que dizem as usuárias</h2>
-          <p className="section-sub">Histórias reais de superação e acesso à justiça.</p>
-          <div className="testimonials-grid">
-            <div className="testimonial">
-              <p className="testimonial-text">Eu não sabia que tinha direito à medida protetiva. O advogado do JurisApoio me explicou tudo em linguagem simples e me ajudou a registrar o boletim. Me senti acolhida e segura.</p>
-              <div className="testimonial-author">
-                <div className="author-avatar" style={{ background: "#c4617a" }}>M</div>
-                <div className="author-info"><strong>Maria S.</strong><span>São Paulo, SP</span></div>
-              </div>
-            </div>
-            <div className="testimonial">
-              <p className="testimonial-text">Fiquei surpresa com a rapidez. Em menos de 12 horas já tinha um advogado conversando comigo. O chat é seguro e privado. Recomendo para todas as mulheres que precisam de apoio.</p>
-              <div className="testimonial-author">
-                <div className="author-avatar" style={{ background: "#500416" }}>A</div>
-                <div className="author-info"><strong>Ana C.</strong><span>Belo Horizonte, MG</span></div>
-              </div>
-            </div>
-            <div className="testimonial">
-              <p className="testimonial-text">Não tinha condições de pagar um advogado. O JurisApoio foi fundamental para conseguir a guarda dos meus filhos. Obrigada por existir e por acreditar em mim.</p>
-              <div className="testimonial-author">
-                <div className="author-avatar" style={{ background: "#2d7a5b" }}>J</div>
-                <div className="author-info"><strong>Juliana M.</strong><span>Fortaleza, CE</span></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* BANNER */}
       <section style={{ background: "var(--warm)" }}>
         <div className="section-inner">
@@ -129,7 +97,6 @@ export function Home() {
             <div className="footer-col">
               <h4>Plataforma</h4>
               <Link to="/">Início</Link>
-              <Link to="/lawyers">Advogados</Link>
               <Link to="/orientacao">Orientação Jurídica</Link>
               <Link to="/dashboard">Minha Área</Link>
             </div>

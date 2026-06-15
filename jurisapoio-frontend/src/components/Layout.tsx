@@ -24,7 +24,6 @@ export function Layout() {
           </Link>
           <div className="nav-links">
             <NavLink to="/" end className={({ isActive }) => isActive ? "active" : ""}>Início</NavLink>
-            <NavLink to="/lawyers" className={({ isActive }) => isActive ? "active" : ""}>Advogados</NavLink>
             <NavLink to="/orientacao" className={({ isActive }) => isActive ? "active" : ""}>Orientação</NavLink>
             {userRole === "admin" ? (
               <NavLink to="/dashboard-admin" className={({ isActive }) => isActive ? "active" : ""}>Painel Admin</NavLink>
