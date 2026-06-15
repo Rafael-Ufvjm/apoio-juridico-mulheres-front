@@ -2,7 +2,7 @@ import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
 export function Layout() {
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, userRole, logout } = useAuth();
   const navigate = useNavigate();
 
   return (
@@ -26,7 +26,11 @@ export function Layout() {
             <NavLink to="/" end className={({ isActive }) => isActive ? "active" : ""}>Início</NavLink>
             <NavLink to="/lawyers" className={({ isActive }) => isActive ? "active" : ""}>Advogados</NavLink>
             <NavLink to="/orientacao" className={({ isActive }) => isActive ? "active" : ""}>Orientação</NavLink>
-            <NavLink to="/dashboard" className={({ isActive }) => isActive ? "active" : ""}>Minha Área</NavLink>
+            {userRole === "advogado" ? (
+              <NavLink to="/dashboard-advogado" className={({ isActive }) => isActive ? "active" : ""}>Painel do Advogado</NavLink>
+            ) : (
+              <NavLink to="/dashboard" className={({ isActive }) => isActive ? "active" : ""}>Minha Área</NavLink>
+            )}
             <NavLink to="/chat" className={({ isActive }) => isActive ? "active" : ""}>Chat Seguro</NavLink>
             <NavLink to="/sobre" className={({ isActive }) => isActive ? "active" : ""}>Sobre</NavLink>
             
@@ -50,7 +54,9 @@ export function Layout() {
               <Link to="/login" className="nav-links a" style={{ padding: "6px 14px" }}>Entrar</Link>
             )}
 
-            <Link to="/dashboard" className="nav-cta btn">Solicitar Ajuda</Link>
+            {userRole !== "advogado" && (
+              <Link to="/dashboard" className="nav-cta btn">Solicitar Ajuda</Link>
+            )}
             <button 
               onClick={() => window.location.replace("https://www.oboticario.com.br/")} 
               className="btn-emergency"

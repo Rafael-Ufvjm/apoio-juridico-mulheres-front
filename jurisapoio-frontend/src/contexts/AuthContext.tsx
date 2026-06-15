@@ -18,7 +18,8 @@ interface LoginData {
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  login: (data: LoginData) => Promise<void>;
+  userRole: "vitima" | "advogado" | null;
+  login: (data: LoginData, role?: "vitima" | "advogado") => Promise<void>;
   logout: () => void;
 }
 
@@ -38,7 +39,11 @@ export function AuthProvider({
       !!tokenStorage.getAccessToken()
     );
 
-  async function login(data: LoginData) {
+  const [userRole, setUserRole] = useState<"vitima" | "advogado" | null>(
+    (localStorage.getItem("user_role") as "vitima" | "advogado") || null
+  );
+
+  async function login(data: LoginData, role: "vitima" | "advogado" = "vitima") {
     try {
       const response =
         await authService.login(data);
@@ -53,6 +58,8 @@ export function AuthProvider({
         refreshToken
       );
 
+      localStorage.setItem("user_role", role);
+      setUserRole(role);
       setIsAuthenticated(true);
     } catch (error) {
       console.warn("Backend offline, logando em modo de demonstração local.", error);
@@ -61,14 +68,16 @@ export function AuthProvider({
         "mock_access_token",
         "mock_refresh_token"
       );
+      localStorage.setItem("user_role", role);
+      setUserRole(role);
       setIsAuthenticated(true);
     }
   }
 
   function logout() {
-
     tokenStorage.clear();
-
+    localStorage.removeItem("user_role");
+    setUserRole(null);
     setIsAuthenticated(false);
   }
 
@@ -76,6 +85,7 @@ export function AuthProvider({
     <AuthContext.Provider
       value={{
         isAuthenticated,
+        userRole,
         login,
         logout,
       }}

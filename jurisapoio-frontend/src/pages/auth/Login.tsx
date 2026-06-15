@@ -41,12 +41,15 @@ export function Login() {
         await login({
           email,
           senha,
-        });
+        }, "vitima");
         navigate("/dashboard");
       } else {
-        // Lawyer login simulation
-        alert("Login de Advogado simulado com sucesso!");
-        navigate("/"); // Redirect to home or simulated lawyer portal
+        await login({
+          email,
+          senha,
+        }, "advogado");
+        alert("Login de Advogado simulado com sucesso! Redirecionando para o Painel de Atendimento.");
+        navigate("/dashboard-advogado");
       }
     } catch {
       alert("Email ou senha inválidos");

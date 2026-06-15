@@ -12,6 +12,7 @@ import { Sobre } from "../pages/Sobre";
 import { Login } from "../pages/auth/Login";
 import { DashboardVitima } from "../pages/vitima/DashboardVitima";
 import { ChatSeguro } from "../pages/vitima/ChatSeguro";
+import { DashboardAdvogado } from "../pages/advogado/DashboardAdvogado";
 
 import {
   ProtectedRoute,
@@ -35,6 +36,14 @@ export function AppRoutes() {
             element={
               <ProtectedRoute>
                 <DashboardVitima />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard-advogado"
+            element={
+              <ProtectedRoute>
+                <DashboardAdvogado />
               </ProtectedRoute>
             }
           />

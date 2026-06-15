@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 
 interface Contact {
   id: number;
@@ -23,6 +24,7 @@ interface Message {
 }
 
 export function ChatSeguro() {
+  const { userRole } = useAuth();
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [activeContactId, setActiveContactId] = useState<number>(2); // Default to Support if nothing else is active
   const [chatMessages, setChatMessages] = useState<Record<number, Message[]>>({
@@ -32,7 +34,9 @@ export function ChatSeguro() {
         sender: "other",
         avatar: "shield",
         avatarColor: "var(--blue)",
-        content: "Olá! Bem-vinda ao chat de suporte do JurisApoio. Como podemos ajudar com a segurança do site hoje?",
+        content: userRole === "advogado" 
+          ? "Olá! Bem-vindo ao chat de suporte do JurisApoio para advogados voluntários. Como podemos ajudar hoje?"
+          : "Olá! Bem-vinda ao chat de suporte do JurisApoio. Como podemos ajudar com a segurança do site hoje?",
         time: "Agora"
       }
     ]
@@ -44,13 +48,14 @@ export function ChatSeguro() {
   // Load contacts based on Triage connection state
   useEffect(() => {
     const isConnected = localStorage.getItem("chat_carlamendes") === "true";
+    const isAdvogado = userRole === "advogado";
     
     const initialContacts: Contact[] = [
       {
         id: 2,
         name: "Suporte JurisApoio",
         avatar: "shield",
-        lastMessage: "Como podemos ajudar com a...",
+        lastMessage: "Como podemos ajudar...",
         time: "Agora",
         isOnline: true,
         avatarColor: "var(--blue)",
@@ -61,23 +66,23 @@ export function ChatSeguro() {
     if (isConnected) {
       initialContacts.unshift({
         id: 1,
-        name: "Dra. Carla Mendes",
-        avatar: "CM",
-        lastMessage: "Olá, Maria. Analisei o resultado da...",
+        name: isAdvogado ? "Maria Oliveira" : "Dra. Carla Mendes",
+        avatar: isAdvogado ? "M" : "CM",
+        lastMessage: isAdvogado ? "O primeiro passo é providenciarmos..." : "Olá, Maria. Analisei o resultado da...",
         time: "10:23",
-        unreadCount: 1,
+        unreadCount: isAdvogado ? undefined : 1,
         isOnline: true,
-        avatarColor: "var(--wine)"
+        avatarColor: isAdvogado ? "var(--rose)" : "var(--wine)"
       });
-      setActiveContactId(1); // Auto select Carla if she is matched
+      setActiveContactId(1); // Auto select Carla/Maria if matched
 
-      // Load messages for Carla
+      // Load messages for the chat
       setChatMessages(prev => ({
         ...prev,
         1: [
           {
             id: 1,
-            sender: "other",
+            sender: isAdvogado ? "user" : "other", // For lawyer, lawyer is "user" (sender)
             avatar: "CM",
             avatarColor: "var(--wine)",
             content: "Olá, Maria. Analisei o resultado da sua triagem e os fatores de risco apontados. Quero que saiba que você está segura aqui. Vamos trabalhar juntas no seu caso.",
@@ -85,7 +90,7 @@ export function ChatSeguro() {
           },
           {
             id: 2,
-            sender: "other",
+            sender: isAdvogado ? "user" : "other",
             avatar: "CM",
             avatarColor: "var(--wine)",
             content: "O primeiro passo é providenciarmos o pedido da sua Medida Protetiva de Urgência. Se você puder, tenha em mãos o seu Comprovante de Residência e o Boletim de Ocorrência (se já houver registrado) para que possamos anexar no processo judicial.",
@@ -98,7 +103,7 @@ export function ChatSeguro() {
     }
 
     setContacts(initialContacts);
-  }, []);
+  }, [userRole]);
 
   const activeContact = contacts.find(c => c.id === activeContactId);
   const messagesList = activeContactId && chatMessages[activeContactId] ? chatMessages[activeContactId] : [];
@@ -117,11 +122,13 @@ export function ChatSeguro() {
     const trimmed = inputVal.trim();
     if (!trimmed || !activeContactId) return;
 
+    const isAdvogado = userRole === "advogado";
+
     const newMsg: Message = {
       id: Date.now(),
       sender: "user",
-      avatar: "M",
-      avatarColor: "var(--rose)",
+      avatar: isAdvogado ? "CM" : "M",
+      avatarColor: isAdvogado ? "var(--wine)" : "var(--rose)",
       content: trimmed,
       time: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
     };
@@ -195,7 +202,6 @@ export function ChatSeguro() {
                     </span>
                   </div>
                   <div className="chat-topbar-actions">
-                    <button className="icon-btn" title="Chamada de vídeo" onClick={() => alert("Vídeo chamada segura desativada no modo demonstração")}><i className="fas fa-video"></i></button>
                     <button className="icon-btn" title="Informações" onClick={() => alert("Informações da advogada voluntária")}><i className="fas fa-info-circle"></i></button>
                   </div>
                 </div>
@@ -205,17 +211,20 @@ export function ChatSeguro() {
                 </div>
 
                 <div className="chat-messages">
-                  {messagesList.map(msg => (
-                    <div key={msg.id} className={`chat-msg ${msg.sender === "user" ? "sent" : "recv"}`}>
-                      <div className="msg-avt" style={{ background: msg.avatarColor, color: "#fff" }}>
-                        {msg.avatar === "shield" ? <i className="fas fa-shield-alt" style={{ fontSize: "12px" }}></i> : msg.avatar}
+                  {messagesList.map(msg => {
+                    const isSent = userRole === "advogado" ? msg.avatar === "CM" : msg.avatar === "M";
+                    return (
+                      <div key={msg.id} className={`chat-msg ${isSent ? "sent" : "recv"}`}>
+                        <div className="msg-avt" style={{ background: msg.avatarColor, color: "#fff" }}>
+                          {msg.avatar === "shield" ? <i className="fas fa-shield-alt" style={{ fontSize: "12px" }}></i> : msg.avatar}
+                        </div>
+                        <div>
+                          <div className="msg-bubble">{msg.content}</div>
+                          <div className="msg-time">{msg.time}</div>
+                        </div>
                       </div>
-                      <div>
-                        <div className="msg-bubble">{msg.content}</div>
-                        <div className="msg-time">{msg.time}</div>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                   <div ref={messagesEndRef} />
                   
                   <div style={{ textAlign: "center", fontSize: "12px", color: "var(--soft)", padding: "8px", background: "rgba(0,0,0,.03)", borderRadius: "8px", marginTop: "10px" }}>
