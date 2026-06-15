@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
+import { adminService } from "../../services/adminService";
+import { advogadoService } from "../../services/advogadoService";
 
 interface Lawyer {
-  id: number;
+  id: number | string;
   name: string;
   email: string;
   oab: string;
@@ -21,12 +23,56 @@ export function DashboardAdmin() {
   const [activeTab, setActiveTab] = useState<"pending" | "approved" | "rejected">("pending");
   const [lawyers, setLawyers] = useState<Lawyer[]>([]);
   const [message, setMessage] = useState<{ text: string; type: "success" | "error" | "info" } | null>(null);
+  const [isBackendConnected, setIsBackendConnected] = useState(false);
 
-  // Load lawyers from localStorage
-  const loadLawyers = () => {
-    const data = localStorage.getItem("juris_lawyers");
-    if (data) {
-      setLawyers(JSON.parse(data));
+  const mapBackendToLawyer = (adv: any): Lawyer => {
+    const parts = (adv.numeroOAB || "").split("/");
+    const oab = parts[0] || "";
+    const uf = parts[1] || "SP";
+    
+    let status: "approved" | "pending" | "rejected" = "pending";
+    if (adv.statusAprovacao === "ATIVO") status = "approved";
+    if (adv.statusAprovacao === "RECUSADO") status = "rejected";
+
+    return {
+      id: adv.id,
+      name: adv.nome,
+      email: adv.email || `${adv.nome.toLowerCase().replace(/\s+/g, "")}@oab.org`,
+      oab: oab,
+      uf: uf,
+      specialties: adv.especialidades ? adv.especialidades.split(",") : ["Geral"],
+      seal: adv.statusAprovacao === "ATIVO" ? "Advogada Voluntária Verificada" : (adv.statusAprovacao === "RECUSADO" ? "Acesso Negado / Suspenso" : "Aguardando Verificação"),
+      experience: "Profissional",
+      cases: "0",
+      rating: "⭐ 5.0",
+      availability: adv.disponibilidade || "ONLINE",
+      color: "var(--wine)",
+      gradient: "linear-gradient(135deg, var(--wine3), var(--wine))",
+      status: status
+    };
+  };
+
+  // Load lawyers from backend or localStorage
+  const loadLawyers = async () => {
+    try {
+      const [pendingRes, activeRes] = await Promise.all([
+        adminService.listarAdvogadosPendentes(),
+        advogadoService.listarAtivos()
+      ]);
+
+      const pendingMapped = pendingRes.data.map(mapBackendToLawyer);
+      const activeMapped = activeRes.data.map(mapBackendToLawyer);
+      
+      setLawyers([...pendingMapped, ...activeMapped]);
+      setIsBackendConnected(true);
+    } catch (error) {
+      console.warn("Backend offline ou sem sessão de administrador. Carregando simulação local...", error);
+      setIsBackendConnected(false);
+      
+      const data = localStorage.getItem("juris_lawyers");
+      if (data) {
+        setLawyers(JSON.parse(data));
+      }
     }
   };
 
@@ -43,9 +89,30 @@ export function DashboardAdmin() {
   };
 
   // Action: Change status of a lawyer
-  const handleUpdateStatus = (id: number, newStatus: "approved" | "pending" | "rejected") => {
+  const handleUpdateStatus = async (id: number | string, newStatus: "approved" | "pending" | "rejected") => {
+    if (typeof id === "string" && id.includes("-")) {
+      try {
+        const aprovado = newStatus === "approved";
+        const justificativa = aprovado ? "Cadastro aprovado pelo administrador." : "Cadastro recusado pelo administrador.";
+        
+        await adminService.processarAprovacao(id, { aprovado, justificativa });
+        triggerMessage(
+          aprovado 
+            ? "Acesso concedido com sucesso!" 
+            : "Acesso recusado pelo administrador.", 
+          aprovado ? "success" : "error"
+        );
+        loadLawyers();
+        return;
+      } catch (err) {
+        console.warn("Erro ao processar aprovação no backend. Usando fallback simulado...", err);
+      }
+    }
+
+    // Local simulation fallback
+    const idNum = typeof id === "string" ? parseInt(id) : id;
     const updated = lawyers.map((lawyer) => {
-      if (lawyer.id === id) {
+      if (lawyer.id === id || lawyer.id === idNum) {
         let seal = lawyer.seal;
         if (newStatus === "approved") {
           seal = "Advogada Voluntária Verificada";
@@ -62,7 +129,7 @@ export function DashboardAdmin() {
     localStorage.setItem("juris_lawyers", JSON.stringify(updated));
     setLawyers(updated);
 
-    const lawyerName = lawyers.find((l) => l.id === id)?.name || "Advogado(a)";
+    const lawyerName = lawyers.find((l) => l.id === id || l.id === idNum)?.name || "Advogado(a)";
     if (newStatus === "approved") {
       triggerMessage(`Acesso concedido com sucesso para ${lawyerName}!`, "success");
     } else if (newStatus === "rejected") {
@@ -76,11 +143,7 @@ export function DashboardAdmin() {
   const handleResetDatabase = () => {
     if (window.confirm("Deseja resetar a base de advogados para os valores iniciais?")) {
       localStorage.removeItem("juris_lawyers");
-      // Force reload or reinitialize
-      const data = localStorage.getItem("juris_lawyers");
-      if (!data) {
-        window.location.reload();
-      }
+      window.location.reload();
     }
   };
 
@@ -155,31 +218,33 @@ export function DashboardAdmin() {
               )}
             </button>
 
-            <button
-              onClick={() => setActiveTab("rejected")}
-              style={{
-                background: activeTab === "rejected" ? "rgba(255,255,255,0.12)" : "transparent",
-                color: "#fff",
-                border: "none",
-                cursor: "pointer",
-                font: "inherit",
-                width: "100%",
-                padding: "10px 12px",
-                borderRadius: "8px",
-                display: "flex",
-                alignItems: "center",
-                gap: "12px",
-                marginBottom: "4px",
-                textAlign: "left"
-              }}
-            >
-              <i className="fas fa-user-slash w-5 text-center"></i> Bloqueados / Rejeitados
-              {rejectedLawyers.length > 0 && (
-                <span className="unread" style={{ marginLeft: "auto", background: "var(--slate)" }}>
-                  {rejectedLawyers.length}
-                </span>
-              )}
-            </button>
+            {!isBackendConnected && (
+              <button
+                onClick={() => setActiveTab("rejected")}
+                style={{
+                  background: activeTab === "rejected" ? "rgba(255,255,255,0.12)" : "transparent",
+                  color: "#fff",
+                  border: "none",
+                  cursor: "pointer",
+                  font: "inherit",
+                  width: "100%",
+                  padding: "10px 12px",
+                  borderRadius: "8px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  marginBottom: "4px",
+                  textAlign: "left"
+                }}
+              >
+                <i className="fas fa-user-slash w-5 text-center"></i> Bloqueados / Rejeitados
+                {rejectedLawyers.length > 0 && (
+                  <span className="unread" style={{ marginLeft: "auto", background: "var(--slate)" }}>
+                    {rejectedLawyers.length}
+                  </span>
+                )}
+              </button>
+            )}
 
             <div style={{ marginTop: "40px", borderTop: "1px solid rgba(255,255,255,0.12)", paddingTop: "20px" }}>
               <button

@@ -154,13 +154,13 @@ export function AuthProvider({
 
   async function login(data: LoginData, role: "vitima" | "advogado" | "admin" = "vitima") {
     try {
-      // Se for admin simulado local, ou advogado/vitima simulado
       const response =
         await authService.login(data);
 
       const {
         accessToken,
         refreshToken,
+        perfil,
       } = response.data;
 
       tokenStorage.setTokens(
@@ -168,10 +168,23 @@ export function AuthProvider({
         refreshToken
       );
 
-      localStorage.setItem("user_role", role);
-      setUserRole(role);
+      let resolvedRole: "vitima" | "advogado" | "admin" = role;
+      if (perfil === "VITIMA") {
+        resolvedRole = "vitima";
+      } else if (perfil === "ADVOGADO_VOLUNTARIO") {
+        resolvedRole = "advogado";
+        localStorage.setItem("logged_lawyer_email", data.email);
+      } else if (perfil === "ADMIN") {
+        resolvedRole = "admin";
+      }
+
+      localStorage.setItem("user_role", resolvedRole);
+      setUserRole(resolvedRole);
       setIsAuthenticated(true);
-    } catch (error) {
+    } catch (error: any) {
+      if (error && error.response) {
+        throw error;
+      }
       console.warn("Backend offline, logando em modo de demonstração local.", error);
       // Salva tokens de demonstração para permitir acesso sem o backend
       tokenStorage.setTokens(

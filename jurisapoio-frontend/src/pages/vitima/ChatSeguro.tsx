@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
+import { mensagemService } from "../../services/mensagemService";
 
 interface Contact {
   id: number;
@@ -15,7 +16,7 @@ interface Contact {
 }
 
 interface Message {
-  id: number;
+  id: string | number;
   sender: "user" | "other";
   avatar: string;
   avatarColor: string;
@@ -49,6 +50,7 @@ export function ChatSeguro() {
   useEffect(() => {
     const isConnected = localStorage.getItem("chat_carlamendes") === "true";
     const isAdvogado = userRole === "advogado";
+    const activeCaseId = localStorage.getItem("active_case_id");
     
     const initialContacts: Contact[] = [
       {
@@ -76,7 +78,7 @@ export function ChatSeguro() {
       });
       setActiveContactId(1); // Auto select Carla/Maria if matched
 
-      // Load messages for the chat
+      // Load mock messages for fallback
       setChatMessages(prev => ({
         ...prev,
         1: [
@@ -103,6 +105,45 @@ export function ChatSeguro() {
     }
 
     setContacts(initialContacts);
+
+    if (activeCaseId && isConnected) {
+      const fetchMessages = async () => {
+        try {
+          const res = await mensagemService.listarMensagens(activeCaseId);
+          const mappedMsgs = res.data.map((msg: any) => {
+            const isSentByMe = isAdvogado 
+              ? msg.remetentePerfil === "ADVOGADO_VOLUNTARIO" 
+              : msg.remetentePerfil === "VITIMA";
+            
+            return {
+              id: msg.id,
+              sender: isSentByMe ? ("user" as const) : ("other" as const),
+              avatar: msg.remetentePerfil === "VITIMA" ? "M" : (msg.remetentePerfil === "ADMIN" ? "shield" : "CM"),
+              avatarColor: msg.remetentePerfil === "VITIMA" ? "var(--rose)" : (msg.remetentePerfil === "ADMIN" ? "var(--blue)" : "var(--wine)"),
+              content: msg.conteudo,
+              time: new Date(msg.dataEnvio).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+            };
+          });
+
+          setChatMessages(prev => ({
+            ...prev,
+            1: mappedMsgs
+          }));
+
+          if (mappedMsgs.length > 0) {
+            const last = mappedMsgs[mappedMsgs.length - 1];
+            setContacts(prev => prev.map(c => c.id === 1 ? { ...c, lastMessage: last.content, time: last.time } : c));
+          }
+        } catch (err) {
+          console.warn("Erro ao buscar mensagens do backend:", err);
+        }
+      };
+
+      fetchMessages();
+
+      const interval = setInterval(fetchMessages, 4000);
+      return () => clearInterval(interval);
+    }
   }, [userRole]);
 
   const activeContact = contacts.find(c => c.id === activeContactId);
@@ -118,11 +159,49 @@ export function ChatSeguro() {
     setContacts(prev => prev.map(c => c.id === id ? { ...c, unreadCount: undefined } : c));
   };
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     const trimmed = inputVal.trim();
     if (!trimmed || !activeContactId) return;
 
     const isAdvogado = userRole === "advogado";
+    const activeCaseId = localStorage.getItem("active_case_id");
+
+    if (activeContactId === 1 && activeCaseId) {
+      try {
+        await mensagemService.enviarMensagem(activeCaseId, trimmed);
+        setInputVal("");
+        
+        // Refetch right away
+        const res = await mensagemService.listarMensagens(activeCaseId);
+        const mappedMsgs = res.data.map((msg: any) => {
+          const isSentByMe = isAdvogado 
+            ? msg.remetentePerfil === "ADVOGADO_VOLUNTARIO" 
+            : msg.remetentePerfil === "VITIMA";
+          
+          return {
+            id: msg.id,
+            sender: isSentByMe ? ("user" as const) : ("other" as const),
+            avatar: msg.remetentePerfil === "VITIMA" ? "M" : (msg.remetentePerfil === "ADMIN" ? "shield" : "CM"),
+            avatarColor: msg.remetentePerfil === "VITIMA" ? "var(--rose)" : (msg.remetentePerfil === "ADMIN" ? "var(--blue)" : "var(--wine)"),
+            content: msg.conteudo,
+            time: new Date(msg.dataEnvio).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+          };
+        });
+
+        setChatMessages(prev => ({
+          ...prev,
+          1: mappedMsgs
+        }));
+
+        if (mappedMsgs.length > 0) {
+          const last = mappedMsgs[mappedMsgs.length - 1];
+          setContacts(prev => prev.map(c => c.id === 1 ? { ...c, lastMessage: last.content, time: last.time } : c));
+        }
+        return;
+      } catch (err) {
+        console.warn("Erro ao enviar mensagem para o backend, usando simulação local...", err);
+      }
+    }
 
     const newMsg: Message = {
       id: Date.now(),

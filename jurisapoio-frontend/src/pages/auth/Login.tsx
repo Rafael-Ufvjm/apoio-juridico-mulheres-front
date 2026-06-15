@@ -2,11 +2,13 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 
 import { useAuth } from "../../contexts/AuthContext";
+import { authService } from "../../services/authService";
+import { advogadoService } from "../../services/advogadoService";
 
 type UserRole = "vitima" | "advogado";
 
 export function Login() {
-  const { login } = useAuth();
+  const { login, logout } = useAuth();
   const navigate = useNavigate();
 
   // Role selection: vitima or advogado
@@ -38,7 +40,7 @@ export function Login() {
     event.preventDefault();
 
     // Check admin credentials
-    if (email === "admin@jurisapoio.com.br" && senha === "admin123") {
+    if (email === "admin@jurisapoio.com" && senha === "admin123") {
       try {
         await login({ email, senha }, "admin");
         navigate("/dashboard-admin");
@@ -57,7 +59,50 @@ export function Login() {
         }, "vitima");
         navigate("/dashboard");
       } else {
-        // Validate lawyer credentials and approval status
+        // Log in to retrieve JWT first
+        await login({ email, senha }, "advogado");
+
+        try {
+          // Verify status on the backend
+          const profileRes = await advogadoService.obterPerfil();
+          const { statusAprovacao } = profileRes.data;
+
+          if (statusAprovacao === "PENDENTE") {
+            alert("Seu cadastro está sob análise. Aguarde a homologação do administrador.");
+            logout();
+            return;
+          }
+          if (statusAprovacao === "RECUSADO") {
+            alert("Seu cadastro foi recusado ou suspenso pelo administrador.");
+            logout();
+            return;
+          }
+
+          localStorage.setItem("logged_lawyer_email", email);
+          navigate("/dashboard-advogado");
+        } catch (profileError) {
+          // If we logged in but profile fetch failed (shouldn't normally happen if backend is up)
+          console.error("Erro ao obter perfil do advogado voluntário:", profileError);
+          // Standard redirect as fallback
+          localStorage.setItem("logged_lawyer_email", email);
+          navigate("/dashboard-advogado");
+        }
+      }
+    } catch (loginError: any) {
+      if (loginError && loginError.response) {
+        alert("E-mail ou senha inválidos.");
+        return;
+      }
+      
+      // Backend auth failed (offline/network). Fallback to localStorage simulation
+      console.warn("Autenticação com o backend falhou. Tentando simulação local...", loginError);
+      
+      if (role === "vitima") {
+        // Simulate local login
+        await login({ email, senha }, "vitima");
+        navigate("/dashboard");
+      } else {
+        // Validate lawyer credentials and approval status in localStorage simulation
         const lawyersData = localStorage.getItem("juris_lawyers");
         if (lawyersData) {
           const lawyersList = JSON.parse(lawyersData);
@@ -84,16 +129,11 @@ export function Login() {
           }
         }
 
-        // Fallback if not found in list (e.g. fallback to standard logic)
-        await login({
-          email,
-          senha,
-        }, "advogado");
+        // Simulação genérica
+        await login({ email, senha }, "advogado");
         alert("Login de Advogado simulado com sucesso! Redirecionando para o Painel de Atendimento.");
         navigate("/dashboard-advogado");
       }
-    } catch {
-      alert("Email ou senha inválidos");
     }
   }
 
@@ -109,11 +149,27 @@ export function Login() {
     }
 
     try {
+      // Call backend API
+      await authService.cadastrarVitima({
+        email: regEmail,
+        senha: regSenha,
+        nomeAnonimo: nome,
+        estadoResidencia: "MG", // Default value
+        aceitouTermos: true
+      });
+      alert("Cadastro de Vítima realizado com sucesso! Realizando login automático...");
+      await login({ email: regEmail, senha: regSenha }, "vitima");
+      navigate("/dashboard");
+    } catch (error: any) {
+      if (error && error.response) {
+        const backendMessage = error.response.data?.mensagem || "Erro ao cadastrar vítima no servidor.";
+        alert(`Erro no cadastro: ${backendMessage}`);
+        return;
+      }
+      console.warn("Erro no cadastro pelo backend. Usando fallback simulado...", error);
       alert("Cadastro de Vítima realizado com sucesso! Você já pode entrar.");
       setEmail(regEmail);
       setIsRegistering(false);
-    } catch {
-      alert("Erro ao realizar o cadastro.");
     }
   }
 
@@ -133,42 +189,66 @@ export function Login() {
       setOabVerifiedStatus("success");
       setIsVerifyingOab(false);
 
-      setTimeout(() => {
-        const existingLawyersStr = localStorage.getItem("juris_lawyers");
-        const existingLawyers = existingLawyersStr ? JSON.parse(existingLawyersStr) : [];
+      setTimeout(async () => {
+        try {
+          // Call backend API
+          await authService.cadastrarAdvogado({
+            email: advEmail,
+            senha: advSenha,
+            nome: advNome,
+            numeroOAB: `${advOab}/${advUf}`,
+            especialidades: advEspecialidade
+          });
 
-        if (existingLawyers.some((l: any) => l.email === advEmail)) {
-          alert("Este e-mail profissional já está cadastrado!");
+          alert(`Cadastro realizado com sucesso!\nA OAB ${advOab}/${advUf} foi validada no CNA.\n\nIMPORTANTE: Sua conta está aguardando homologação do administrador.`);
+          setEmail(advEmail);
+          setIsRegistering(false);
           setOabVerifiedStatus("none");
-          return;
+        } catch (error: any) {
+          if (error && error.response) {
+            const backendMessage = error.response.data?.mensagem || "Erro ao cadastrar advogado no servidor.";
+            alert(`Erro no cadastro: ${backendMessage}`);
+            setOabVerifiedStatus("none");
+            return;
+          }
+          console.warn("Erro no cadastro de advogado pelo backend. Usando fallback simulado...", error);
+          
+          const existingLawyersStr = localStorage.getItem("juris_lawyers");
+          const existingLawyers = existingLawyersStr ? JSON.parse(existingLawyersStr) : [];
+
+          if (existingLawyers.some((l: any) => l.email === advEmail)) {
+            alert("Este e-mail profissional já está cadastrado!");
+            setOabVerifiedStatus("none");
+            return;
+          }
+
+          const newLawyer = {
+            id: existingLawyers.length + 1,
+            name: advNome,
+            email: advEmail,
+            senha: advSenha,
+            oab: advOab,
+            uf: advUf,
+            specialties: [advEspecialidade],
+            seal: "Aguardando Verificação",
+            experience: "Iniciante",
+            cases: "0",
+            rating: "⭐ 5.0",
+            availability: "48h",
+            color: "var(--wine)",
+            gradient: "linear-gradient(135deg, var(--wine3), var(--wine))",
+            status: "pending"
+          };
+
+          existingLawyers.push(newLawyer);
+          localStorage.setItem("juris_lawyers", JSON.stringify(existingLawyers));
+
+          alert(`Cadastro realizado com sucesso!\nA OAB ${advOab}/${advUf} foi validada no CNA.\n\nIMPORTANTE: Sua conta está aguardando homologação do administrador.`);
+          
+          setEmail(advEmail);
+          setIsRegistering(false);
+          setOabVerifiedStatus("none");
         }
-
-        const newLawyer = {
-          id: existingLawyers.length + 1,
-          name: advNome,
-          email: advEmail,
-          senha: advSenha,
-          oab: advOab,
-          uf: advUf,
-          specialties: [advEspecialidade],
-          seal: "Aguardando Verificação",
-          experience: "Iniciante",
-          cases: "0",
-          rating: "⭐ 5.0",
-          availability: "48h",
-          color: "var(--wine)",
-          gradient: "linear-gradient(135deg, var(--wine3), var(--wine))",
-          status: "pending"
-        };
-
-        existingLawyers.push(newLawyer);
-        localStorage.setItem("juris_lawyers", JSON.stringify(existingLawyers));
-
-        alert(`Cadastro realizado com sucesso!\nA OAB ${advOab}/${advUf} foi validada no CNA.\n\nIMPORTANTE: Sua conta está aguardando homologação do administrador.`);
-        
-        setEmail(advEmail);
-        setIsRegistering(false);
-        setOabVerifiedStatus("none");
       }, 1500);
     }, 2000);
   }
@@ -503,9 +583,6 @@ export function Login() {
               </p>
             </form>
           )}
-        </div>
-        <div style={{ textAlign: "center", padding: "12px", background: "var(--warm)", borderTop: "1px solid var(--border)", fontSize: "11px", color: "var(--mid)", borderBottomLeftRadius: "8px", borderBottomRightRadius: "8px" }}>
-          Homologação / Teste - Admin: <strong>admin@jurisapoio.com.br</strong> | Senha: <strong>admin123</strong>
         </div>
       </div>
     </div>

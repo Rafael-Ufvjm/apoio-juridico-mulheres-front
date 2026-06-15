@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { vitimaService } from "../../services/vitimaService";
+import { casoService } from "../../services/casoService";
+import type { TipoViolencia } from "../../types/api.types";
 
 interface Message {
   id: number;
@@ -14,6 +17,9 @@ interface Message {
 export function DashboardVitima() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<"overview" | "triagem" | "status" | "msgs">("overview");
+
+  // Victim profile state
+  const [victimName, setVictimName] = useState("Maria Oliveira");
 
   // Triage state
   const [triageStep, setTriageStep] = useState(1);
@@ -30,19 +36,67 @@ export function DashboardVitima() {
   const [urgencyLevel, setUrgencyLevel] = useState<"Alta" | "Moderada">("Moderada");
   const [lawyerAccepted, setLawyerAccepted] = useState(false);
 
-  // Load state from localStorage on mount
+  // Load state from backend (or fallback to localStorage on mount)
   useEffect(() => {
-    const savedTriage = localStorage.getItem("triage_completed");
-    if (savedTriage === "true") {
-      setTriageCompleted(true);
-      const savedUrgency = localStorage.getItem("triage_urgency");
-      if (savedUrgency) setUrgencyLevel(savedUrgency as "Alta" | "Moderada");
-      
-      const savedAccepted = localStorage.getItem("chat_accepted");
-      if (savedAccepted === "true") {
-        setLawyerAccepted(true);
+    async function loadData() {
+      try {
+        const profileRes = await vitimaService.obterPerfil();
+        if (profileRes.data && profileRes.data.nomeAnonimo) {
+          setVictimName(profileRes.data.nomeAnonimo);
+        }
+
+        const casesRes = await casoService.listarCasosDaVitima();
+        const activeCase = casesRes.data.find(
+          c => c.status === "AGUARDANDO" || c.status === "EM_ATENDIMENTO"
+        );
+
+        if (activeCase) {
+          setTriageCompleted(true);
+          const isHigh = activeCase.tipoViolencia === "FISICA" || activeCase.tipoViolencia === "SEXUAL";
+          const urgency = isHigh ? "Alta" : "Moderada";
+          setUrgencyLevel(urgency);
+          
+          localStorage.setItem("active_case_id", activeCase.id);
+          localStorage.setItem("triage_completed", "true");
+          localStorage.setItem("triage_urgency", urgency);
+
+          if (activeCase.advogado) {
+            setLawyerAccepted(true);
+            localStorage.setItem("chat_accepted", "true");
+            localStorage.setItem("chat_carlamendes", "true");
+          } else {
+            setLawyerAccepted(false);
+            localStorage.removeItem("chat_accepted");
+            localStorage.removeItem("chat_carlamendes");
+          }
+        } else {
+          // No active case on backend
+          localStorage.removeItem("active_case_id");
+          localStorage.removeItem("triage_completed");
+          localStorage.removeItem("triage_urgency");
+          localStorage.removeItem("chat_accepted");
+          localStorage.removeItem("chat_carlamendes");
+          setTriageCompleted(false);
+          setLawyerAccepted(false);
+        }
+      } catch (error) {
+        console.warn("Backend offline ou sem sessão ativa. Carregando simulação local...", error);
+        
+        // Fallback local mockup load
+        const savedTriage = localStorage.getItem("triage_completed");
+        if (savedTriage === "true") {
+          setTriageCompleted(true);
+          const savedUrgency = localStorage.getItem("triage_urgency");
+          if (savedUrgency) setUrgencyLevel(savedUrgency as "Alta" | "Moderada");
+          
+          const savedAccepted = localStorage.getItem("chat_accepted");
+          if (savedAccepted === "true") {
+            setLawyerAccepted(true);
+          }
+        }
       }
     }
+    loadData();
   }, []);
 
   const [messages] = useState<Message[]>([
@@ -69,24 +123,62 @@ export function DashboardVitima() {
     );
   };
 
-  const handleFinishTriage = () => {
-    // Determine severity
+  // Helper to map checkbox answers to a single TipoViolencia enum using requested priorities
+  const mapToTipoViolencia = (types: string[]): TipoViolencia => {
+    if (types.some(t => t.toLowerCase().includes("física"))) return "FISICA";
+    if (types.some(t => t.toLowerCase().includes("sexual"))) return "SEXUAL";
+    if (types.some(t => t.toLowerCase().includes("ameaça") || t.toLowerCase().includes("perseguição"))) return "MORAL";
+    if (types.some(t => t.toLowerCase().includes("psicológica"))) return "PSICOLOGICA";
+    if (types.some(t => t.toLowerCase().includes("patrimonial"))) return "PATRIMONIAL";
+    return "PSICOLOGICA"; // default fallback
+  };
+
+  const handleFinishTriage = async () => {
     const isHighUrgency = 
       hasWeapon === "Sim" || 
       sharesHome === "Sim" || 
       recentAggression === "Sim" || 
-      violenceTypes.includes("Física") ||
-      violenceTypes.includes("Ameaças/Perseguição grave");
+      violenceTypes.some(t => t.toLowerCase().includes("física")) ||
+      violenceTypes.some(t => t.toLowerCase().includes("ameaça") || t.toLowerCase().includes("perseguição"));
 
     const severity = isHighUrgency ? "Alta" : "Moderada";
-    setUrgencyLevel(severity);
-    setTriageCompleted(true);
-
-    localStorage.setItem("triage_completed", "true");
-    localStorage.setItem("triage_urgency", severity);
+    const mappedType = mapToTipoViolencia(violenceTypes);
     
-    alert("Triagem concluída com sucesso! Analisamos suas respostas e identificamos as melhores diretrizes de segurança.");
-    setActiveTab("triagem");
+    // Construct description ensuring it is >= 20 characters
+    let descricao = `Violências relatadas: ${violenceTypes.join(", ")}. Arma: ${hasWeapon}. Mora junto: ${sharesHome}. Agressão 48h: ${recentAggression}. Suporte necessário: ${needs.join(", ")}.`;
+    if (descricao.length < 20) {
+      descricao = "Relato detalhado da triagem de violência: " + descricao;
+    }
+
+    try {
+      // Call backend API
+      const caseRes = await casoService.abrirCaso({
+        tipoViolencia: mappedType,
+        descricao: descricao
+      });
+
+      if (caseRes.data && caseRes.data.id) {
+        localStorage.setItem("active_case_id", caseRes.data.id);
+      }
+      
+      setUrgencyLevel(severity);
+      setTriageCompleted(true);
+      localStorage.setItem("triage_completed", "true");
+      localStorage.setItem("triage_urgency", severity);
+
+      alert("Triagem concluída com sucesso! Analisamos suas respostas e identificamos as melhores diretrizes de segurança.");
+      setActiveTab("triagem");
+    } catch (error) {
+      console.warn("Erro ao criar caso no backend. Rodando simulação local...", error);
+      
+      setUrgencyLevel(severity);
+      setTriageCompleted(true);
+      localStorage.setItem("triage_completed", "true");
+      localStorage.setItem("triage_urgency", severity);
+
+      alert("Triagem concluída com sucesso (Modo Simulado)! Analisamos suas respostas e identificamos as melhores diretrizes de segurança.");
+      setActiveTab("triagem");
+    }
   };
 
   const handleResetTriage = () => {
@@ -99,6 +191,7 @@ export function DashboardVitima() {
       setSharesHome("");
       setRecentAggression("");
       setNeeds([]);
+      localStorage.removeItem("active_case_id");
       localStorage.removeItem("triage_completed");
       localStorage.removeItem("triage_urgency");
       localStorage.removeItem("chat_accepted");
@@ -126,7 +219,7 @@ export function DashboardVitima() {
           <div className="dash-user">
             <div className="dash-user-avatar">M</div>
             <div className="dash-user-info">
-              <strong>Maria Oliveira</strong>
+              <strong>{victimName}</strong>
               <span>Usuária verificada</span>
             </div>
           </div>
@@ -178,7 +271,7 @@ export function DashboardVitima() {
           {activeTab === "overview" && (
             <div id="dash-overview" className="dash-tab active">
               <div className="dash-header">
-                <h2>Bem-vinda, Maria 👋</h2>
+                <h2>Bem-vinda, {victimName.split(" ")[0]} 👋</h2>
                 <span className={`badge ${triageCompleted ? "badge-green" : "badge-amber"}`}>
                   <i className="fas fa-circle" style={{ fontSize: "8px" }}></i> {triageCompleted ? "Triagem realizada" : "Triagem pendente"}
                 </span>

@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { advogadoService } from "../../services/advogadoService";
+import { casoService } from "../../services/casoService";
+import type { Disponibilidade } from "../../types/api.types";
 
 interface Case {
   id: string;
@@ -18,11 +21,16 @@ export function DashboardAdvogado() {
   const [lawyerName, setLawyerName] = useState("Dra. Carla Mendes");
   const [lawyerOab, setLawyerOab] = useState("187.432");
   const [lawyerUf, setLawyerUf] = useState("SP");
+  const [lawyerId, setLawyerId] = useState("");
+  const [availability, setAvailability] = useState<Disponibilidade>("ONLINE");
   
   // Real-time states reading from localStorage to sync with the victim simulation
   const [hasTriageCompleted, setHasTriageCompleted] = useState(false);
   const [triageUrgency, setTriageUrgency] = useState<"Alta" | "Moderada">("Moderada");
   const [isChatAccepted, setIsChatAccepted] = useState(false);
+
+  // Backend case state
+  const [backendCase, setBackendCase] = useState<any>(null);
 
   useEffect(() => {
     // Read current simulation state
@@ -34,22 +42,88 @@ export function DashboardAdvogado() {
     setTriageUrgency(urgency);
     setIsChatAccepted(accepted);
 
-    // Load active lawyer session details
-    const email = localStorage.getItem("logged_lawyer_email");
-    const lawyersData = localStorage.getItem("juris_lawyers");
-    if (email && lawyersData) {
-      const list = JSON.parse(lawyersData);
-      const found = list.find((l: any) => l.email === email);
-      if (found) {
-        setLawyerName(found.name);
-        setLawyerOab(found.oab);
-        setLawyerUf(found.uf);
+    async function loadLawyerData() {
+      try {
+        const res = await advogadoService.obterPerfil();
+        setLawyerName(res.data.nome);
+        setLawyerId(res.data.id);
+        setAvailability(res.data.disponibilidade);
+        if (res.data.numeroOAB) {
+          const parts = res.data.numeroOAB.split("/");
+          setLawyerOab(parts[0]);
+          setLawyerUf(parts[1] || "SP");
+        }
+
+        // Fetch lawyer cases
+        const casesRes = await advogadoService.listarCasos();
+        const active = casesRes.data.find(c => c.status === "EM_ATENDIMENTO");
+        if (active) {
+          setIsChatAccepted(true);
+          localStorage.setItem("chat_accepted", "true");
+          localStorage.setItem("chat_carlamendes", "true");
+          localStorage.setItem("active_case_id", active.id);
+        }
+      } catch (error) {
+        console.warn("Backend offline ou sem sessão ativa. Carregando simulação local...", error);
+        
+        // Load active lawyer session details from localStorage fallback
+        const email = localStorage.getItem("logged_lawyer_email");
+        const lawyersData = localStorage.getItem("juris_lawyers");
+        if (email && lawyersData) {
+          const list = JSON.parse(lawyersData);
+          const found = list.find((l: any) => l.email === email);
+          if (found) {
+            setLawyerName(found.name);
+            setLawyerOab(found.oab);
+            setLawyerUf(found.uf);
+          }
+        }
       }
+    }
+
+    loadLawyerData();
+
+    // Load active case details from backend if present
+    const activeCaseId = localStorage.getItem("active_case_id");
+    if (activeCaseId) {
+      casoService.buscarPorId(activeCaseId)
+        .then(res => {
+          setBackendCase(res.data);
+        })
+        .catch(err => {
+          console.warn("Não foi possível buscar os detalhes do caso no backend:", err);
+        });
     }
   }, []);
 
-  const handleAcceptCase = (caseId: string) => {
-    if (caseId === "maria-oliveira") {
+  const handleAvailabilityChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value as Disponibilidade;
+    setAvailability(value);
+    try {
+      await advogadoService.atualizarDisponibilidade(value);
+      alert(`Disponibilidade atualizada para ${value}!`);
+    } catch (err) {
+      console.warn("Erro ao atualizar disponibilidade no backend:", err);
+    }
+  };
+
+  const handleAcceptCase = async (caseId: string) => {
+    if (caseId && lawyerId && caseId !== "maria-oliveira") {
+      try {
+        await casoService.atribuirAdvogado(caseId, lawyerId);
+        localStorage.setItem("chat_accepted", "true");
+        localStorage.setItem("chat_carlamendes", "true");
+        localStorage.setItem("active_case_id", caseId);
+        setIsChatAccepted(true);
+        alert("Você aceitou o caso com sucesso! Um canal de comunicação seguro foi aberto.");
+        setActiveTab("my_cases");
+        return;
+      } catch (err) {
+        console.warn("Erro ao aceitar o caso via API. Usando fallback simulado...", err);
+      }
+    }
+
+    if (caseId === "maria-oliveira" || caseId === localStorage.getItem("active_case_id")) {
       localStorage.setItem("chat_accepted", "true");
       localStorage.setItem("chat_carlamendes", "true"); // Connects chat on victim side
       setIsChatAccepted(true);
@@ -66,6 +140,7 @@ export function DashboardAdvogado() {
       localStorage.removeItem("triage_urgency");
       localStorage.removeItem("chat_accepted");
       localStorage.removeItem("chat_carlamendes");
+      localStorage.removeItem("active_case_id");
       setHasTriageCompleted(false);
       setIsChatAccepted(false);
       alert("Simulação resetada!");
@@ -76,8 +151,28 @@ export function DashboardAdvogado() {
   // Mock pending cases in the system
   const pendingCases: Case[] = [];
   
-  // If the victim did the triage, add her to the pending list (or in-treatment list if accepted)
-  if (hasTriageCompleted) {
+  if (backendCase) {
+    const isAssignedToMe = backendCase.advogado && backendCase.advogado.id === lawyerId;
+    const isAwaiting = backendCase.status === "AGUARDANDO";
+
+    if (isAwaiting || isAssignedToMe) {
+      pendingCases.push({
+        id: backendCase.id,
+        victimName: backendCase.vitima ? backendCase.vitima.nomeAnonimo : "Vítima Anônima",
+        age: "34 anos",
+        city: (backendCase.vitima && backendCase.vitima.estadoResidencia) 
+          ? `Localidade - ${backendCase.vitima.estadoResidencia}` 
+          : "São Paulo - SP",
+        urgency: backendCase.tipoViolencia === "FISICA" || backendCase.tipoViolencia === "SEXUAL" ? "Alta" : "Moderada",
+        violenceTypes: [backendCase.tipoViolencia],
+        date: "Hoje",
+        status: isAssignedToMe ? "Em Atendimento" : "Pendente"
+      });
+    }
+  }
+
+  // If the victim did the triage locally (offline fallback)
+  if (hasTriageCompleted && !pendingCases.some(c => c.id === "maria-oliveira" || c.id === localStorage.getItem("active_case_id"))) {
     pendingCases.push({
       id: "maria-oliveira",
       victimName: "Maria Oliveira",
@@ -213,10 +308,19 @@ export function DashboardAdvogado() {
               <span className="badge badge-blue" style={{ marginBottom: "6px" }}>Painel de Advocacia Pro Bono</span>
               <h2>Olá, {lawyerName} 👋</h2>
             </div>
-            <div style={{ display: "flex", gap: "10px" }}>
+            <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
               <div style={{ background: "var(--white)", border: "1px solid var(--border)", borderRadius: "6px", padding: "6px 12px", fontSize: "13px" }}>
                 Status CNA: <strong style={{ color: "var(--green)" }}>✓ Regularizado</strong>
               </div>
+              <select
+                value={availability}
+                onChange={handleAvailabilityChange}
+                style={{ background: "var(--white)", border: "1px solid var(--border)", borderRadius: "6px", padding: "6px 12px", fontSize: "13px", cursor: "pointer", outline: "none", fontFamily: "inherit" }}
+              >
+                <option value="ONLINE">🟢 Online</option>
+                <option value="OFFLINE">⚫ Offline</option>
+                <option value="OCUPADO">🔴 Ocupado</option>
+              </select>
             </div>
           </div>
 
@@ -348,6 +452,7 @@ export function DashboardAdvogado() {
                         <button
                           onClick={() => {
                             localStorage.setItem("chat_carlamendes", "true"); // Ensures chat is enabled
+                            localStorage.setItem("active_case_id", c.id); // Save backend case ID for lawyer too!
                             navigate("/chat");
                           }}
                           className="btn btn-wine"
