@@ -25,12 +25,7 @@ export function Home() {
             <i className="fas fa-book-open"></i> Conhecer Meus Direitos
           </Link>
         </div>
-        <div className="hero-stats">
-          <div className="hero-stat"><strong>50+</strong><span>casos atendidos</span></div>
-          <div className="hero-stat"><strong>15+</strong><span>advogados voluntários</span></div>
-          <div className="hero-stat"><strong>99%</strong><span>satisfação das usuárias</span></div>
-          <div className="hero-stat"><strong>24h</strong><span>resposta média</span></div>
-        </div>
+
       </div>
 
       {/* HOW IT WORKS */}
