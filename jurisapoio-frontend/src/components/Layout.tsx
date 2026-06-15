@@ -32,8 +32,7 @@ export function Layout() {
             ) : (
               <NavLink to="/dashboard" className={({ isActive }) => isActive ? "active" : ""}>Minha Área</NavLink>
             )}
-            <NavLink to="/chat" className={({ isActive }) => isActive ? "active" : ""}>Chat Seguro</NavLink>
-            <NavLink to="/sobre" className={({ isActive }) => isActive ? "active" : ""}>Sobre</NavLink>
+             <NavLink to="/sobre" className={({ isActive }) => isActive ? "active" : ""}>Sobre</NavLink>
             
             {isAuthenticated ? (
               <button 
