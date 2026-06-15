@@ -68,16 +68,18 @@ export function DashboardAdvogado() {
 
         // Fetch lawyer cases
         const casesRes = await advogadoService.listarCasos();
-        const activeCasesFormatted = casesRes.data.map((c: any) => ({
-          id: c.id,
-          victimName: c.vitima ? c.vitima.nomeAnonimo : "Vítima Anônima",
-          age: "Idade não informada",
-          city: c.vitima && c.vitima.estadoResidencia ? `Localidade - ${c.vitima.estadoResidencia}` : "Não Informado",
-          urgency: c.tipoViolencia === "FISICA" || c.tipoViolencia === "SEXUAL" ? "Alta" : "Moderada",
-          violenceTypes: [mapViolenceType(c.tipoViolencia)],
-          date: c.timestampAbertura ? new Date(c.timestampAbertura).toLocaleDateString("pt-BR") : "Hoje",
-          status: "Em Atendimento" as const
-        }));
+        const activeCasesFormatted = casesRes.data
+          .filter((c: any) => c.status === "EM_ATENDIMENTO")
+          .map((c: any) => ({
+            id: c.id,
+            victimName: c.vitima ? c.vitima.nomeAnonimo : "Vítima Anônima",
+            age: "Idade não informada",
+            city: c.vitima && c.vitima.estadoResidencia ? `Localidade - ${c.vitima.estadoResidencia}` : "Não Informado",
+            urgency: c.tipoViolencia === "FISICA" || c.tipoViolencia === "SEXUAL" ? "Alta" : "Moderada",
+            violenceTypes: [mapViolenceType(c.tipoViolencia)],
+            date: c.timestampAbertura ? new Date(c.timestampAbertura).toLocaleDateString("pt-BR") : "Hoje",
+            status: "Em Atendimento" as const
+          }));
         setMyCases(activeCasesFormatted);
 
         const active = casesRes.data.find(c => c.status === "EM_ATENDIMENTO");
@@ -174,16 +176,18 @@ export function DashboardAdvogado() {
         setPendingCases(prev => prev.filter(c => c.id !== caseId));
         
         const casesRes = await advogadoService.listarCasos();
-        const activeCasesFormatted = casesRes.data.map((c: any) => ({
-          id: c.id,
-          victimName: c.vitima ? c.vitima.nomeAnonimo : "Vítima Anônima",
-          age: "Idade não informada",
-          city: c.vitima && c.vitima.estadoResidencia ? `Localidade - ${c.vitima.estadoResidencia}` : "Não Informado",
-          urgency: c.tipoViolencia === "FISICA" || c.tipoViolencia === "SEXUAL" ? "Alta" : "Moderada",
-          violenceTypes: [mapViolenceType(c.tipoViolencia)],
-          date: c.timestampAbertura ? new Date(c.timestampAbertura).toLocaleDateString("pt-BR") : "Hoje",
-          status: "Em Atendimento" as const
-        }));
+        const activeCasesFormatted = casesRes.data
+          .filter((c: any) => c.status === "EM_ATENDIMENTO")
+          .map((c: any) => ({
+            id: c.id,
+            victimName: c.vitima ? c.vitima.nomeAnonimo : "Vítima Anônima",
+            age: "Idade não informada",
+            city: c.vitima && c.vitima.estadoResidencia ? `Localidade - ${c.vitima.estadoResidencia}` : "Não Informado",
+            urgency: c.tipoViolencia === "FISICA" || c.tipoViolencia === "SEXUAL" ? "Alta" : "Moderada",
+            violenceTypes: [mapViolenceType(c.tipoViolencia)],
+            date: c.timestampAbertura ? new Date(c.timestampAbertura).toLocaleDateString("pt-BR") : "Hoje",
+            status: "Em Atendimento" as const
+          }));
         setMyCases(activeCasesFormatted);
 
         localStorage.setItem("chat_accepted", "true");
