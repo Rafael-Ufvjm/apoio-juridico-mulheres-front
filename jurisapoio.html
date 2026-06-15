@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>JurisApoio — Apoio Jurídico Gratuito</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<style>
+:root {
+  --wine:    #500416;
+  --wine2:   #6b0620;
+  --wine3:   #3a0310;
+  --rose:    #c4617a;
+  --blush:   #f2dde3;
+  --cream:   #fdf8f5;
+  --warm:    #f7ede8;
+  --slate:   #2c2c3a;
+  --mid:     #5c5c72;
+  --soft:    #9898b0;
+  --border:  #e8dde0;
+  --white:   #ffffff;
+  --green:   #2d7a5b;
+  --amber:   #b06a1a;
+  --blue:    #1e4d8c;
+  --r:       10px;
+  --r2:      18px;
+  --shadow:  0 4px 24px rgba(80,4,22,.10);
+  --shadow2: 0 8px 40px rgba(80,4,22,.16);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--slate);line-height:1.6}
+h1,h2,h3,h4{font-family:'Playfair Display',serif;line-height:1.25}
+
+/* ── NAV ─────────────────────────────────────────── */
+nav{position:fixed;top:0;left:0;right:0;z-index:999;background:var(--white);border-bottom:1px solid var(--border);box-shadow:0 2px 16px rgba(80,4,22,.07)}
+.nav-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:0;padding:0 24px;height:64px}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;margin-right:auto}
+.logo-icon{width:36px;height:36px;background:var(--wine);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px}
+.logo-text{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--wine)}
+.logo-sub{font-size:10px;color:var(--mid);letter-spacing:.06em;text-transform:uppercase;margin-top:-2px}
+.nav-links{display:flex;gap:2px;align-items:center}
+.nav-links a{font-size:13.5px;font-weight:500;color:var(--mid);text-decoration:none;padding:6px 14px;border-radius:6px;transition:.2s;cursor:pointer}
+.nav-links a:hover,.nav-links a.active{color:var(--wine);background:var(--blush)}
+.nav-cta{margin-left:14px;background:var(--wine);color:#fff!important;padding:8px 18px!important;border-radius:8px!important}
+.nav-cta:hover{background:var(--wine2)!important;color:#fff!important}
+
+/* ── PAGES ───────────────────────────────────────── */
+.page{display:none;padding-top:64px;min-height:100vh}
+.page.active{display:block}
+
+/* ── HERO ────────────────────────────────────────── */
+.hero{background:linear-gradient(135deg,var(--wine3) 0%,var(--wine) 50%,#8b1a35 100%);color:#fff;padding:90px 24px 80px;text-align:center;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:30px;padding:6px 16px;font-size:12.5px;letter-spacing:.04em;margin-bottom:28px;backdrop-filter:blur(4px)}
+.hero h1{font-size:clamp(32px,5vw,58px);font-weight:700;margin-bottom:22px;text-shadow:0 2px 20px rgba(0,0,0,.3)}
+.hero p{font-size:18px;opacity:.85;max-width:560px;margin:0 auto 36px;font-weight:300}
+.hero-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:13px 26px;border-radius:var(--r);font-size:15px;font-weight:600;cursor:pointer;border:none;transition:.2s;text-decoration:none;font-family:'DM Sans',sans-serif}
+.btn-primary{background:#fff;color:var(--wine)}
+.btn-primary:hover{background:var(--blush);transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,0,0,.2)}
+.btn-outline{background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.5)}
+.btn-outline:hover{background:rgba(255,255,255,.12)}
+.btn-wine{background:var(--wine);color:#fff}
+.btn-wine:hover{background:var(--wine2);transform:translateY(-1px);box-shadow:var(--shadow2)}
+.btn-ghost{background:transparent;color:var(--wine);border:1.5px solid var(--border)}
+.btn-ghost:hover{background:var(--blush);border-color:var(--rose)}
+.hero-stats{display:flex;gap:48px;justify-content:center;margin-top:56px;flex-wrap:wrap}
+.hero-stat{text-align:center}
+.hero-stat strong{display:block;font-size:34px;font-weight:700;font-family:'Playfair Display',serif}
+.hero-stat span{font-size:13px;opacity:.7;letter-spacing:.03em}
+
+/* ── SECTIONS ────────────────────────────────────── */
+section{padding:72px 24px}
+.section-inner{max-width:1160px;margin:0 auto}
+.section-tag{display:inline-block;background:var(--blush);color:var(--wine);font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:4px 12px;border-radius:20px;margin-bottom:14px}
+.section-title{font-size:clamp(26px,3.5vw,38px);color:var(--wine);margin-bottom:14px}
+.section-sub{font-size:16px;color:var(--mid);max-width:520px;margin-bottom:48px}
+
+/* ── HOW IT WORKS ────────────────────────────────── */
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:24px}
+.step{background:var(--white);border:1px solid var(--border);border-radius:var(--r2);padding:32px 24px;position:relative;transition:.25s;box-shadow:var(--shadow)}
+.step:hover{transform:translateY(-4px);box-shadow:var(--shadow2)}
+.step-num{width:44px;height:44px;background:var(--wine);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;margin-bottom:18px;font-family:'Playfair Display',serif}
+.step h3{font-size:17px;color:var(--slate);margin-bottom:10px}
+.step p{font-size:14px;color:var(--mid);line-height:1.6}
+
+/* ── TESTIMONIALS ────────────────────────────────── */
+.testimonials-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px}
+.testimonial{background:var(--white);border:1px solid var(--border);border-radius:var(--r2);padding:28px;box-shadow:var(--shadow)}
+.testimonial-text{font-size:15px;color:var(--slate);line-height:1.7;margin-bottom:20px;font-style:italic}
+.testimonial-text::before{content:'"';font-size:40px;color:var(--rose);line-height:0;vertical-align:-14px;margin-right:4px;font-family:'Playfair Display',serif}
+.testimonial-author{display:flex;align-items:center;gap:12px}
+.author-avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;color:#fff}
+.author-info strong{font-size:14px;display:block;color:var(--slate)}
+.author-info span{font-size:12px;color:var(--soft)}
+
+/* ── BANNER ──────────────────────────────────────── */
+.banner{background:linear-gradient(135deg,var(--wine),#8b1a35);color:#fff;border-radius:var(--r2);padding:52px 40px;display:flex;align-items:center;gap:40px;flex-wrap:wrap}
+.banner-icon{font-size:64px;opacity:.9;flex-shrink:0}
+.banner h2{font-size:28px;margin-bottom:10px}
+.banner p{font-size:16px;opacity:.85;max-width:500px;margin-bottom:0}
+.banner .btn{margin-top:22px}
+
+/* ── LAWYERS ─────────────────────────────────────── */
+.lawyers-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:24px}
+.lawyer-card{background:var(--white);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;box-shadow:var(--shadow);transition:.25s}
+.lawyer-card:hover{transform:translateY(-4px);box-shadow:var(--shadow2)}
+.lawyer-top{background:linear-gradient(135deg,var(--wine3),var(--wine));padding:28px 24px 20px;display:flex;align-items:center;gap:16px}
+.lawyer-avatar{width:64px;height:64px;border-radius:50%;border:3px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#fff;font-family:'Playfair Display',serif;flex-shrink:0}
+.lawyer-top-info{color:#fff}
+.lawyer-top-info h3{font-size:17px;font-family:'Playfair Display',serif}
+.lawyer-top-info span{font-size:13px;opacity:.8}
+.lawyer-body{padding:20px 24px}
+.lawyer-tags{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.tag{font-size:11.5px;padding:3px 10px;border-radius:20px;font-weight:500}
+.tag-wine{background:var(--blush);color:var(--wine)}
+.tag-green{background:#e6f5ef;color:var(--green)}
+.tag-blue{background:#e8eef8;color:var(--blue)}
+.lawyer-meta{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
+.lawyer-meta-item{background:var(--warm);border-radius:8px;padding:10px 12px}
+.lawyer-meta-item span{font-size:11px;color:var(--soft);display:block}
+.lawyer-meta-item strong{font-size:14px;color:var(--slate)}
+.volunteer-seal{display:flex;align-items:center;gap:6px;background:var(--blush);color:var(--wine);font-size:12px;font-weight:600;padding:6px 12px;border-radius:6px;margin-bottom:16px}
+
+/* ── FAQ ─────────────────────────────────────────── */
+.faq-cats{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:36px}
+.faq-cat{padding:7px 18px;border-radius:20px;font-size:13.5px;font-weight:500;cursor:pointer;border:1.5px solid var(--border);color:var(--mid);background:var(--white);transition:.2s}
+.faq-cat.active,.faq-cat:hover{background:var(--wine);color:#fff;border-color:var(--wine)}
+.faq-list{display:flex;flex-direction:column;gap:12px}
+.faq-item{background:var(--white);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow)}
+.faq-q{padding:18px 20px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-weight:500;font-size:15px;gap:16px;color:var(--slate)}
+.faq-q:hover{background:var(--warm)}
+.faq-q i{color:var(--rose);flex-shrink:0;transition:.2s}
+.faq-a{padding:0 20px 18px;font-size:14px;color:var(--mid);line-height:1.7;border-top:1px solid var(--border)}
+.faq-a.hidden{display:none}
+
+/* ── RIGHTS CARDS ────────────────────────────────── */
+.rights-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px}
+.right-card{background:var(--white);border:1px solid var(--border);border-radius:var(--r2);padding:24px;box-shadow:var(--shadow)}
+.right-card-icon{width:46px;height:46px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:16px}
+.right-card h4{font-size:15px;color:var(--slate);margin-bottom:8px}
+.right-card p{font-size:13.5px;color:var(--mid);line-height:1.6}
+
+/* ── DASHBOARD ───────────────────────────────────── */
+.dashboard{display:grid;grid-template-columns:260px 1fr;gap:0;min-height:calc(100vh - 64px);padding-top:64px}
+.dash-sidebar{background:var(--wine3);color:#fff;padding:28px 20px;position:sticky;top:64px;height:calc(100vh - 64px);overflow-y:auto}
+.dash-user{display:flex;align-items:center;gap:12px;padding-bottom:24px;border-bottom:1px solid rgba(255,255,255,.12);margin-bottom:24px}
+.dash-user-avatar{width:46px;height:46px;background:var(--rose);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px}
+.dash-user-info strong{display:block;font-size:14px}
+.dash-user-info span{font-size:12px;opacity:.6}
+.dash-menu a{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:8px;color:rgba(255,255,255,.7);text-decoration:none;font-size:14px;margin-bottom:4px;cursor:pointer;transition:.15s}
+.dash-menu a:hover,.dash-menu a.active{background:rgba(255,255,255,.12);color:#fff}
+.dash-menu a i{width:18px;text-align:center;font-size:15px}
+.dash-content{background:var(--cream);padding:32px}
+.dash-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px}
+.dash-header h2{font-size:22px;color:var(--wine)}
+.dash-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:28px}
+.dash-card{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:20px;box-shadow:var(--shadow)}
+.dash-card-icon{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:12px}
+.dash-card span{font-size:12.5px;color:var(--soft);display:block;margin-bottom:4px}
+.dash-card strong{font-size:20px;color:var(--slate);display:block}
+.dash-card small{font-size:12px;color:var(--mid)}
+.status-bar{display:flex;gap:0;align-items:center;margin-bottom:32px}
+.status-step{flex:1;text-align:center;position:relative}
+.status-step::before{content:'';position:absolute;top:18px;left:50%;right:-50%;height:2px;background:var(--border)}
+.status-step:last-child::before{display:none}
+.status-dot{width:36px;height:36px;border-radius:50%;border:2px solid var(--border);background:var(--white);display:flex;align-items:center;justify-content:center;margin:0 auto 8px;font-size:14px;position:relative;z-index:1;transition:.2s}
+.status-step.done .status-dot{background:var(--green);border-color:var(--green);color:#fff}
+.status-step.active .status-dot{background:var(--wine);border-color:var(--wine);color:#fff}
+.status-step p{font-size:11.5px;color:var(--soft)}
+.status-step.done p,.status-step.active p{color:var(--slate);font-weight:500}
+.msgs{display:flex;flex-direction:column;gap:10px}
+.msg-item{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;display:flex;gap:14px;align-items:flex-start;box-shadow:var(--shadow)}
+.msg-avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:14px;flex-shrink:0}
+.msg-body strong{font-size:14px;color:var(--slate);display:block}
+.msg-body p{font-size:13px;color:var(--mid)}
+.msg-body time{font-size:11.5px;color:var(--soft)}
+.upload-box{background:var(--white);border:2px dashed var(--border);border-radius:var(--r2);padding:48px 24px;text-align:center;margin-bottom:20px;cursor:pointer;transition:.2s}
+.upload-box:hover{border-color:var(--rose);background:var(--warm)}
+.upload-box i{font-size:36px;color:var(--rose);margin-bottom:14px;display:block}
+.upload-box p{color:var(--mid);font-size:14px}
+.file-list{display:flex;flex-direction:column;gap:8px}
+.file-item{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:12px 16px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow)}
+.file-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.file-info strong{font-size:13.5px;display:block;color:var(--slate)}
+.file-info span{font-size:12px;color:var(--soft)}
+.file-actions{margin-left:auto;display:flex;gap:8px}
+.icon-btn{width:32px;height:32px;border-radius:6px;border:1px solid var(--border);background:var(--white);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--mid);transition:.15s}
+.icon-btn:hover{background:var(--blush);color:var(--wine);border-color:var(--rose)}
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;padding:3px 10px;border-radius:20px}
+.badge-green{background:#e6f5ef;color:var(--green)}
+.badge-amber{background:#fef3e2;color:var(--amber)}
+.badge-wine{background:var(--blush);color:var(--wine)}
+.badge-blue{background:#e8eef8;color:var(--blue)}
+
+/* ── CHAT ────────────────────────────────────────── */
+.chat-layout{display:grid;grid-template-columns:300px 1fr;gap:0;height:calc(100vh - 64px)}
+.chat-sidebar{background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column}
+.chat-sidebar-header{padding:20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.chat-sidebar-header h3{font-size:16px;color:var(--slate)}
+.chat-search{padding:12px 16px;border-bottom:1px solid var(--border)}
+.chat-search input{width:100%;padding:8px 12px;border-radius:8px;border:1px solid var(--border);font-size:13.5px;font-family:'DM Sans',sans-serif;background:var(--warm);outline:none}
+.chat-search input:focus{border-color:var(--rose)}
+.chat-contacts{flex:1;overflow-y:auto}
+.chat-contact{padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:.15s;border-bottom:1px solid var(--border)}
+.chat-contact:hover,.chat-contact.active{background:var(--warm)}
+.chat-contact.active{border-left:3px solid var(--wine)}
+.contact-avatar{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:16px;flex-shrink:0}
+.contact-info{flex:1;min-width:0}
+.contact-info strong{font-size:14px;display:block;color:var(--slate);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.contact-info span{font-size:12px;color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.contact-meta{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.contact-meta time{font-size:11px;color:var(--soft)}
+.unread{width:18px;height:18px;background:var(--wine);border-radius:50%;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.chat-main{display:flex;flex-direction:column;background:var(--cream)}
+.chat-topbar{padding:16px 24px;background:var(--white);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px}
+.chat-topbar-info strong{display:block;font-size:15px;color:var(--slate)}
+.chat-topbar-info span{font-size:12.5px;color:var(--green)}
+.chat-topbar-actions{margin-left:auto;display:flex;gap:10px}
+.chat-messages{flex:1;overflow-y:auto;padding:24px;display:flex;flex-direction:column;gap:16px}
+.chat-msg{display:flex;gap:10px;max-width:70%}
+.chat-msg.sent{align-self:flex-end;flex-direction:row-reverse}
+.msg-bubble{padding:12px 16px;border-radius:16px;font-size:14px;line-height:1.55}
+.chat-msg.recv .msg-bubble{background:var(--white);border:1px solid var(--border);color:var(--slate);border-radius:4px 16px 16px 16px;box-shadow:var(--shadow)}
+.chat-msg.sent .msg-bubble{background:var(--wine);color:#fff;border-radius:16px 4px 16px 16px}
+.msg-time{font-size:11px;color:var(--soft);margin-top:4px;align-self:flex-end}
+.chat-msg.sent .msg-time{text-align:right}
+.chat-privacy-bar{background:var(--blush);border-top:1px solid var(--border);padding:8px 24px;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--wine)}
+.chat-input-bar{background:var(--white);border-top:1px solid var(--border);padding:16px 24px;display:flex;gap:12px;align-items:center}
+.chat-input{flex:1;padding:12px 16px;border-radius:24px;border:1.5px solid var(--border);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;background:var(--warm)}
+.chat-input:focus{border-color:var(--rose)}
+.chat-send{width:44px;height:44px;background:var(--wine);border:none;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;transition:.2s;flex-shrink:0}
+.chat-send:hover{background:var(--wine2);transform:scale(1.05)}
+.msg-avt{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0}
+
+/* ── ABOUT ───────────────────────────────────────── */
+.about-hero{background:linear-gradient(135deg,var(--wine3),var(--wine));color:#fff;padding:80px 24px;text-align:center}
+.about-hero h1{font-size:42px;margin-bottom:18px}
+.about-hero p{font-size:17px;opacity:.85;max-width:540px;margin:0 auto}
+.mission-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px}
+.mission-card{background:var(--white);border:1px solid var(--border);border-radius:var(--r2);padding:32px;box-shadow:var(--shadow)}
+.mission-card i{font-size:32px;margin-bottom:16px;display:block}
+.mission-card h3{font-size:18px;margin-bottom:10px;color:var(--wine)}
+.mission-card p{font-size:14.5px;color:var(--mid);line-height:1.65}
+.impact-numbers{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:20px}
+.impact-num{text-align:center;background:var(--white);border:1px solid var(--border);border-radius:var(--r2);padding:28px;box-shadow:var(--shadow)}
+.impact-num strong{font-size:38px;color:var(--wine);display:block;font-family:'Playfair Display',serif}
+.impact-num span{font-size:13.5px;color:var(--mid)}
+
+/* ── SECURITY ────────────────────────────────────── */
+.sec-hero{background:linear-gradient(135deg,#0d1a2e,#1e3a5f);color:#fff;padding:80px 24px;text-align:center}
+.sec-hero h1{font-size:42px;margin-bottom:18px}
+.sec-hero p{font-size:17px;opacity:.8;max-width:520px;margin:0 auto}
+.sec-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:24px}
+.sec-card{background:var(--white);border:1px solid var(--border);border-radius:var(--r2);padding:28px;box-shadow:var(--shadow)}
+.sec-card-icon{width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:18px}
+.sec-card h3{font-size:17px;color:var(--slate);margin-bottom:10px}
+.sec-card p{font-size:13.5px;color:var(--mid);line-height:1.65}
+.lgpd-block{background:linear-gradient(135deg,#0d1a2e,#1e3a5f);color:#fff;border-radius:var(--r2);padding:40px;margin-top:32px}
+.lgpd-block h3{font-size:24px;margin-bottom:14px;color:#93c5fd}
+.lgpd-block p{font-size:14.5px;opacity:.85;line-height:1.7;margin-bottom:18px}
+.lgpd-items{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.lgpd-item{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:14px;display:flex;align-items:center;gap:10px;font-size:13.5px}
+.lgpd-item i{color:#93c5fd}
+
+/* ── FOOTER ──────────────────────────────────────── */
+footer{background:var(--wine3);color:rgba(255,255,255,.8);padding:56px 24px 32px}
+.footer-inner{max-width:1160px;margin:0 auto}
+.footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;margin-bottom:40px}
+.footer-brand p{font-size:13.5px;opacity:.7;margin:12px 0 20px;line-height:1.6;max-width:260px}
+.footer-logo{display:flex;align-items:center;gap:10px}
+.footer-logo-icon{width:32px;height:32px;background:var(--rose);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff}
+.footer-logo-text{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:#fff}
+.footer-col h4{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:16px}
+.footer-col a{display:block;color:rgba(255,255,255,.7);text-decoration:none;font-size:13.5px;margin-bottom:10px;cursor:pointer;transition:.15s}
+.footer-col a:hover{color:#fff}
+.footer-bottom{border-top:1px solid rgba(255,255,255,.1);padding-top:24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:gap;gap:12px}
+.footer-bottom p{font-size:13px;opacity:.5}
+.footer-socials{display:flex;gap:10px}
+.social-btn{width:34px;height:34px;border-radius:8px;border:1px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.6);font-size:14px;cursor:pointer;transition:.15s}
+.social-btn:hover{background:rgba(255,255,255,.1);color:#fff}
+.emergency-bar{background:var(--rose);color:#fff;text-align:center;padding:10px;font-size:13.5px;font-weight:600;letter-spacing:.02em}
+.emergency-bar a{color:#fff;font-weight:700}
+
+/* ── MISC ────────────────────────────────────────── */
+.divider{height:1px;background:var(--border);margin:0}
+@media(max-width:768px){
+  .dashboard{grid-template-columns:1fr}
+  .dash-sidebar{display:none}
+  .chat-layout{grid-template-columns:1fr}
+  .chat-sidebar{display:none}
+  .footer-grid{grid-template-columns:1fr 1fr}
+  .banner{flex-direction:column;text-align:center}
+  .hero-stats{gap:28px}
+}
+.tabs-bar{display:flex;gap:0;background:var(--white);border-bottom:1px solid var(--border);padding:0 32px;overflow-x:auto}
+.tab-btn{padding:14px 20px;font-size:13.5px;font-weight:500;color:var(--mid);cursor:pointer;border-bottom:2.5px solid transparent;white-space:nowrap;transition:.2s;font-family:'DM Sans',sans-serif;background:none;border-top:none;border-left:none;border-right:none}
+.tab-btn.active{color:var(--wine);border-bottom-color:var(--wine)}
+.tab-btn:hover{color:var(--wine)}
+.tab-panel{display:none;padding:28px 32px}
+.tab-panel.active{display:block}
+</style>
+</head>
+<body>
+
+<!-- EMERGENCY BAR -->
+<div class="emergency-bar">
+  ⚠️ Em situação de risco imediato? Ligue <a href="tel:180">180 — Central da Mulher</a> ou <a href="tel:190">190 — Polícia</a>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a class="logo" onclick="showPage('home')">
+      <div class="logo-icon"><i class="fas fa-balance-scale"></i></div>
+      <div><div class="logo-text">JurisApoio</div><div class="logo-sub">Apoio jurídico gratuito</div></div>
+    </a>
+    <div class="nav-links">
+      <a onclick="showPage('home')" id="nav-home" class="active">Início</a>
+      <a onclick="showPage('lawyers')" id="nav-lawyers">Advogados</a>
+      <a onclick="showPage('orientacao')" id="nav-orientacao">Orientação</a>
+      <a onclick="showPage('dashboard')" id="nav-dashboard">Minha Área</a>
+      <a onclick="showPage('chat')" id="nav-chat">Chat Seguro</a>
+      <a onclick="showPage('sobre')" id="nav-sobre">Sobre</a>
+      <a onclick="showPage('seguranca')" id="nav-seguranca">Segurança</a>
+      <a onclick="showPage('home')" class="nav-cta btn">Solicitar Ajuda</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════════════ -->
+<!-- PAGE: HOME -->
+<!-- ══════════════════════════════════════════════════ -->
+<div class="page active" id="page-home">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-badge"><i class="fas fa-shield-alt"></i> Confidencial · Gratuito · Seguro</div>
+    <h1>Você não está sozinha.<br>Temos advogados prontos para te ajudar.</h1>
+    <p>Conectamos vítimas de violência contra a mulher com advogados voluntários e a Defensoria Pública, de forma gratuita, confidencial e acessível.</p>
+    <div class="hero-btns">
+      <a class="btn btn-primary" onclick="showPage('dashboard')"><i class="fas fa-hands-helping"></i> Solicitar Ajuda Agora</a>
+      <a class="btn btn-outline" onclick="showPage('orientacao')"><i class="fas fa-book-open"></i> Conhecer Meus Direitos</a>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat"><strong>4.800+</strong><span>casos atendidos</span></div>
+      <div class="hero-stat"><strong>320+</strong><span>advogados voluntários</span></div>
+      <div class="hero-stat"><strong>96%</strong><span>satisfação das usuárias</span></div>
+      <div class="hero-stat"><strong>24h</strong><span>resposta média</span></div>
+    </div>
+  </div>
+
+  <!-- HOW IT WORKS -->
+  <section style="background:var(--white)">
+    <div class="section-inner">
+      <div class="section-tag">Como funciona</div>
+      <h2 class="section-title">Simples, rápido e seguro</h2>
+      <p class="section-sub">Em poucos passos você tem acesso a orientação jurídica especializada, sem burocracia.</p>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <h3>Cadastro anônimo</h3>
+          <p>Crie sua conta usando apenas um apelido. Não pedimos CPF nem nome completo na etapa inicial. Sua segurança vem primeiro.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <h3>Descreva sua situação</h3>
+          <p>Responda a um formulário guiado sobre o que aconteceu. O sistema classifica e direciona para o profissional mais adequado.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <h3>Conecte-se ao advogado</h3>
+          <p>Um advogado voluntário especializado entra em contato via chat seguro e criptografado em até 24 horas.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <h3>Acompanhe seu caso</h3>
+          <p>Acompanhe o andamento pelo painel, envie documentos e receba atualizações sobre seu processo em linguagem simples.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TESTIMONIALS -->
+  <section>
+    <div class="section-inner">
+      <div class="section-tag">Depoimentos</div>
+      <h2 class="section-title">O que dizem as usuárias</h2>
+      <p class="section-sub">Histórias reais de superação e acesso à justiça.</p>
+      <div class="testimonials-grid">
+        <div class="testimonial">
+          <p class="testimonial-text">Eu não sabia que tinha direito à medida protetiva. O advogado do JurisApoio me explicou tudo em linguagem simples e me ajudou a registrar o boletim. Me senti acolhida e segura.</p>
+          <div class="testimonial-author">
+            <div class="author-avatar" style="background:#c4617a">M</div>
+            <div class="author-info"><strong>Maria S.</strong><span>São Paulo, SP</span></div>
+          </div>
+        </div>
+        <div class="testimonial">
+          <p class="testimonial-text">Fiquei surpresa com a rapidez. Em menos de 12 horas já tinha um advogado conversando comigo. O chat é seguro e privado. Recomendo para todas as mulheres que precisam de apoio.</p>
+          <div class="testimonial-author">
+            <div class="author-avatar" style="background:#500416">A</div>
+            <div class="author-info"><strong>Ana C.</strong><span>Belo Horizonte, MG</span></div>
+          </div>
+        </div>
+        <div class="testimonial">
+          <p class="testimonial-text">Não tinha condições de pagar um advogado. O JurisApoio foi fundamental para conseguir a guarda dos meus filhos. Obrigada por existir e por acreditar em mim.</p>
+          <div class="testimonial-author">
+            <div class="author-avatar" style="background:#2d7a5b">J</div>
+            <div class="author-info"><strong>Juliana M.</strong><span>Fortaleza, CE</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BANNER -->
+  <section style="background:var(--warm)">
+    <div class="section-inner">
+      <div class="banner">
+        <div class="banner-icon">⚖️</div>
+        <div>
+          <h2>A justiça é um direito de todas.<br>Não de quem pode pagar.</h2>
+          <p>O JurisApoio nasceu para garantir que nenhuma mulher vítima de violência fique sem acesso a orientação jurídica qualificada, independentemente de sua condição financeira.</p>
+          <a class="btn btn-primary" onclick="showPage('orientacao')">Conhecer meus direitos</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="footer-logo"><div class="footer-logo-icon"><i class="fas fa-balance-scale"></i></div><span class="footer-logo-text">JurisApoio</span></div>
+          <p>Plataforma de apoio jurídico gratuito para vítimas de violência contra a mulher. Confidencial, seguro e acessível.</p>
+          <div class="footer-socials">
+            <div class="social-btn"><i class="fab fa-instagram"></i></div>
+            <div class="social-btn"><i class="fab fa-facebook"></i></div>
+            <div class="social-btn"><i class="fab fa-whatsapp"></i></div>
+          </div>
+        </div>
+        <div class="footer-col"><h4>Plataforma</h4><a onclick="showPage('home')">Início</a><a onclick="showPage('lawyers')">Advogados</a><a onclick="showPage('orientacao')">Orientação Jurídica</a><a onclick="showPage('dashboard')">Minha Área</a></div>
+        <div class="footer-col"><h4>Institucional</h4><a onclick="showPage('sobre')">Sobre o projeto</a><a onclick="showPage('seguranca')">Segurança</a><a>Política de privacidade</a><a>Termos de uso</a></div>
+        <div class="footer-col"><h4>Emergência</h4><a>📞 180 — Central da Mulher</a><a>📞 190 — Polícia</a><a>📞 192 — SAMU</a><a>📞 Disque 100 — Direitos Humanos</a></div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2025 JurisApoio · Trabalho Acadêmico · Todos os dados são fictícios</p>
+        <p style="opacity:.4">Desenvolvido com 💜 para combater a violência contra a mulher</p>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<!-- ══════════════════════════════════════════════════ -->
+<!-- PAGE: LAWYERS -->
+<!-- ══════════════════════════════════════════════════ -->
+<div class="page" id="page-lawyers">
+  <section style="background:linear-gradient(135deg,var(--wine3),var(--wine));color:#fff;padding:60px 24px">
+    <div class="section-inner" style="margin-bottom:0">
+      <div class="section-tag" style="background:rgba(255,255,255,.15);color:#fff">Nossa rede</div>
+      <h2 class="section-title" style="color:#fff">Advogados Voluntários Parceiros</h2>
+      <p class="section-sub" style="color:rgba(255,255,255,.8);margin-bottom:0">Profissionais com OAB ativa, verificados e comprometidos com o acesso à justiça para todas as mulheres.</p>
+    </div>
+  </section>
+  <section>
+    <div class="section-inner">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:32px">
+        <button class="faq-cat active">Todos</button>
+        <button class="faq-cat">Violência Doméstica</button>
+        <button class="faq-cat">Direito de Família</button>
+        <button class="faq-cat">Medida Protetiva</button>
+        <button class="faq-cat">Direito Penal</button>
+      </div>
+      <div class="lawyers-grid">
+        <!-- Card 1 -->
+        <div class="lawyer-card">
+          <div class="lawyer-top">
+            <div class="lawyer-avatar">CM</div>
+            <div class="lawyer-top-info"><h3>Dra. Carla Mendes</h3><span>OAB/SP 187.432</span></div>
+          </div>
+          <div class="lawyer-body">
+            <div class="volunteer-seal"><i class="fas fa-award"></i> Advogada Voluntária Verificada</div>
+            <div class="lawyer-tags"><span class="tag tag-wine">Violência Doméstica</span><span class="tag tag-green">Medida Protetiva</span></div>
+            <div class="lawyer-meta">
+              <div class="lawyer-meta-item"><span>Experiência</span><strong>12 anos</strong></div>
+              <div class="lawyer-meta-item"><span>Casos atendidos</span><strong>340+</strong></div>
+              <div class="lawyer-meta-item"><span>Avaliação</span><strong>⭐ 4.9</strong></div>
+              <div class="lawyer-meta-item"><span>Disponibilidade</span><strong>24–48h</strong></div>
+            </div>
+            <a class="btn btn-wine" style="width:100%;justify-content:center"><i class="fas fa-comment-dots"></i> Entrar em contato</a>
+          </div>
+        </div>
+        <!-- Card 2 -->
+        <div class="lawyer-card">
+          <div class="lawyer-top" style="background:linear-gradient(135deg,#0d3a2e,#1a5c3a)">
+            <div class="lawyer-avatar" style="background:rgba(255,255,255,.15)">RS</div>
+            <div class="lawyer-top-info"><h3>Dr. Rafael Silva</h3><span>OAB/RJ 213.567</span></div>
+          </div>
+          <div class="lawyer-body">
+            <div class="volunteer-seal"><i class="fas fa-award"></i> Advogado Voluntário Verificado</div>
+            <div class="lawyer-tags"><span class="tag tag-blue">Direito de Família</span><span class="tag tag-wine">Guarda de Filhos</span></div>
+            <div class="lawyer-meta">
+              <div class="lawyer-meta-item"><span>Experiência</span><strong>8 anos</strong></div>
+              <div class="lawyer-meta-item"><span>Casos atendidos</span><strong>210+</strong></div>
+              <div class="lawyer-meta-item"><span>Avaliação</span><strong>⭐ 4.8</strong></div>
+              <div class="lawyer-meta-item"><span>Disponibilidade</span><strong>12–24h</strong></div>
+            </div>
+            <a class="btn btn-wine" style="width:100%;justify-content:center;background:var(--green)"><i class="fas fa-comment-dots"></i> Entrar em contato</a>
+          </div>
+        </div>
+        <!-- Card 3 -->
+        <div class="lawyer-card">
+          <div class="lawyer-top" style="background:linear-gradient(135deg,#1a2a4a,#1e4d8c)">
+            <div class="lawyer-avatar" style="background:rgba(255,255,255,.15)">PL</div>
+            <div class="lawyer-top-info"><h3>Dra. Paula Lima</h3><span>OAB/MG 142.890</span></div>
+          </div>
+          <div class="lawyer-body">
+            <div class="volunteer-seal"><i class="fas fa-award"></i> Advogada Voluntária Verificada</div>
+            <div class="lawyer-tags"><span class="tag tag-blue">Direito Penal</span><span class="tag tag-green">Lei Maria da Penha</span></div>
+            <div class="lawyer-meta">
+              <div class="lawyer-meta-item"><span>Experiência</span><strong>15 anos</strong></div>
+              <div class="lawyer-meta-item"><span>Casos atendidos</span><strong>520+</strong></div>
+              <div class="lawyer-meta-item"><span>Avaliação</span><strong>⭐ 5.0</strong></div>
+              <div class="lawyer-meta-item"><span>Disponibilidade</span><strong>24h</strong></div>
+            </div>
+            <a class="btn btn-wine" style="width:100%;justify-content:center;background:var(--blue)"><i class="fas fa-comment-dots"></i> Entrar em contato</a>
+          </div>
+        </div>
+        <!-- Card 4 -->
+        <div class="lawyer-card">
+          <div class="lawyer-top" style="background:linear-gradient(135deg,#3a1a00,#7a3a0a)">
+            <div class="lawyer-avatar" style="background:rgba(255,255,255,.15)">FC</div>
+            <div class="lawyer-top-info"><h3>Dra. Fernanda Costa</h3><span>OAB/BA 98.123</span></div>
+          </div>
+          <div class="lawyer-body">
+            <div class="volunteer-seal"><i class="fas fa-award"></i> Advogada Voluntária Verificada</div>
+            <div class="lawyer-tags"><span class="tag tag-wine">Violência Psicológica</span><span class="tag tag-blue">Divórcio</span></div>
+            <div class="lawyer-meta">
+              <div class="lawyer-meta-item"><span>Experiência</span><strong>10 anos</strong></div>
+              <div class="lawyer-meta-item"><span>Casos atendidos</span><strong>280+</strong></div>
+              <div class="lawyer-meta-item"><span>Avaliação</span><strong>⭐ 4.7</strong></div>
+              <div class="lawyer-meta-item"><span>Disponibilidade</span><strong>48h</strong></div>
+            </div>
+            <a class="btn btn-wine" style="width:100%;justify-content:center;background:#7a3a0a"><i class="fas fa-comment-dots"></i> Entrar em contato</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ══════════════════════════════════════════════════ -->
+<!-- PAGE: ORIENTAÇÃO -->
+<!-- ══════════════════════════════════════════════════ -->
+<div class="page" id="page-orientacao">
+  <section style="background:linear-gradient(135deg,var(--wine3),var(--wine));color:#fff;padding:60px 24px">
+    <div class="section-inner" style="margin-bottom:0">
+      <div class="section-tag" style="background:rgba(255,255,255,.15);color:#fff">Orientação Jurídica</div>
+      <h2 class="section-title" style="color:#fff">Conheça seus direitos</h2>
+      <p class="section-sub" style="color:rgba(255,255,255,.8);margin-bottom:0">Informações claras, em linguagem acessível, sobre seus direitos como mulher vítima de violência.</p>
+    </div>
+  </section>
+  <section>
+    <div class="section-inner">
+      <!-- RIGHTS CARDS -->
+      <div class="section-tag">Direitos fundamentais</div>
+      <h2 class="section-title">O que a lei garante a você</h2>
+      <div class="rights-grid" style="margin-bottom:48px">
+        <div class="right-card">
+          <div class="right-card-icon" style="background:var(--blush);color:var(--wine)"><i class="fas fa-shield-alt"></i></div>
+          <h4>Medida Protetiva de Urgência</h4>
+          <p>Garantida pela Lei Maria da Penha (Lei 11.340/2006). O juiz pode determinar o afastamento do agressor em até 48 horas após o pedido.</p>
+        </div>
+        <div class="right-card">
+          <div class="right-card-icon" style="background:#e6f5ef;color:var(--green)"><i class="fas fa-file-alt"></i></div>
+          <h4>Boletim de Ocorrência</h4>
+          <p>Pode ser registrado em qualquer delegacia, 24 horas por dia. Também disponível online em muitos estados. É gratuito e fundamental para a proteção legal.</p>
+        </div>
+        <div class="right-card">
+          <div class="right-card-icon" style="background:#e8eef8;color:var(--blue)"><i class="fas fa-home"></i></div>
+          <h4>Direito à moradia</h4>
+          <p>Você tem direito a permanecer na residência do casal. O agressor pode ser obrigado a se retirar do imóvel por determinação judicial.</p>
+        </div>
+        <div class="right-card">
+          <div class="right-card-icon" style="background:#fef3e2;color:var(--amber)"><i class="fas fa-user-shield"></i></div>
+          <h4>Assistência jurídica gratuita</h4>
+          <p>A Defensoria Pública garante atendimento jurídico gratuito. O JurisApoio também conecta você com advogados voluntários sem custo algum.</p>
+        </div>
+        <div class="right-card">
+          <div class="right-card-icon" style="background:var(--blush);color:var(--wine)"><i class="fas fa-hospital"></i></div>
+          <h4>Atendimento de saúde</h4>
+          <p>O SUS oferece atendimento especializado para vítimas de violência, incluindo coleta de evidências, profilaxia e acompanhamento psicológico.</p>
+        </div>
+        <div class="right-card">
+          <div class="right-card-icon" style="background:#e6f5ef;color:var(--green)"><i class="fas fa-child"></i></div>
+          <h4>Guarda dos filhos</h4>
+          <p>A violência doméstica é fator determinante nas decisões de guarda. Você pode solicitar guarda provisória urgente em situações de risco.</p>
+        </div>
+      </div>
+
+      <!-- FAQ -->
+      <div class="section-tag">Perguntas frequentes</div>
+      <h2 class="section-title">Dúvidas comuns</h2>
+      <div class="faq-cats" style="margin-bottom:24px">
+        <button class="faq-cat active">Todas</button>
+        <button class="faq-cat">Medida Protetiva</button>
+        <button class="faq-cat">Denúncia</button>
+        <button class="faq-cat">Direitos</button>
+      </div>
+      <div class="faq-list">
+        <div class="faq-item">
+          <div class="faq-q" onclick="toggleFaq(this)"><span>O que é a Lei Maria da Penha?</span><i class="fas fa-chevron-down"></i></div>
+          <div class="faq-a">A Lei 11.340/2006, conhecida como Lei Maria da Penha, cria mecanismos para coibir e prevenir a violência doméstica e familiar contra a mulher. Ela define os tipos de violência (física, psicológica, sexual, patrimonial e moral) e prevê medidas protetivas, delegacias especializadas, varas exclusivas e penas mais severas para os agressores.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q" onclick="toggleFaq(this)"><span>Como solicitar uma medida protetiva?</span><i class="fas fa-chevron-down"></i></div>
+          <div class="faq-a hidden">Você pode solicitar a medida protetiva diretamente na Delegacia de Atendimento à Mulher (DEAM) ou em qualquer delegacia. A solicitação também pode ser feita pelo Ministério Público ou pelo advogado. Após o pedido, o juiz tem 48 horas para decidir. A medida protetiva pode proibir o agressor de se aproximar, contatar ou frequentar os mesmos lugares que você.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q" onclick="toggleFaq(this)"><span>Posso registrar BO mesmo sem provas físicas?</span><i class="fas fa-chevron-down"></i></div>
+          <div class="faq-a hidden">Sim. A sua palavra tem valor legal. Registrar o boletim de ocorrência é fundamental mesmo sem provas físicas imediatas. Testemunhos, histórico de mensagens, e-mails, prints de redes sociais e relatos consistentes são aceitos como evidências. Recomendamos guardar tudo que possa documentar a situação.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q" onclick="toggleFaq(this)"><span>O que acontece após eu denunciar?</span><i class="fas fa-chevron-down"></i></div>
+          <div class="faq-a hidden">Após o registro do BO, a polícia encaminha o caso ao Ministério Público, que decide se abre inquérito. O juiz pode decretar medidas protetivas de urgência em até 48 horas. O processo penal é conduzido pelo Estado — você não precisa "sustentá-lo". Você pode acompanhar o andamento com a ajuda do seu advogado ou da Defensoria Pública.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q" onclick="toggleFaq(this)"><span>Posso retirar a denúncia depois?</span><i class="fas fa-chevron-down"></i></div>
+          <div class="faq-a hidden">Na Lei Maria da Penha, você pode renunciar à representação apenas em audiência judicial e antes do recebimento da denúncia. Para crimes de ação penal pública incondicionada (como lesão corporal), a ação penal prossegue mesmo sem sua solicitação. É fundamental conversar com um advogado antes de qualquer decisão nesse sentido.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ══════════════════════════════════════════════════ -->
+<!-- PAGE: DASHBOARD -->
+<!-- ══════════════════════════════════════════════════ -->
+<div class="page" id="page-dashboard">
+  <div class="dashboard">
+    <!-- Sidebar -->
+    <div class="dash-sidebar">
+      <div class="dash-user">
+        <div class="dash-user-avatar">M</div>
+        <div class="dash-user-info"><strong>Maria Oliveira</strong><span>Usuária verificada</span></div>
+      </div>
+      <div class="dash-menu">
+        <a class="active" onclick="showDashTab('overview',this)"><i class="fas fa-th-large"></i> Visão Geral</a>
+        <a onclick="showDashTab('status',this)"><i class="fas fa-tasks"></i> Status do Caso</a>
+        <a onclick="showDashTab('msgs',this)"><i class="fas fa-envelope"></i> Mensagens <span class="unread" style="margin-left:auto">2</span></a>
+        <a onclick="showDashTab('docs',this)"><i class="fas fa-folder"></i> Documentos</a>
+        <a onclick="showDashTab('history',this)"><i class="fas fa-history"></i> Histórico</a>
+        <a onclick="showPage('chat')"><i class="fas fa-comments"></i> Chat Seguro</a>
+      </div>
+    </div>
+    <!-- Main -->
+    <div class="dash-content">
+      <!-- OVERVIEW -->
+      <div id="dash-overview" class="dash-tab">
+        <div class="dash-header">
+          <h2>Bem-vinda, Maria 👋</h2>
+          <span class="badge badge-green"><i class="fas fa-circle" style="font-size:8px"></i> Caso ativo</span>
+        </div>
+        <div class="dash-cards">
+          <div class="dash-card">
+            <div class="dash-card-icon" style="background:var(--blush);color:var(--wine)"><i class="fas fa-gavel"></i></div>
+            <span>Protocolo</span><strong>#JA-2025-4821</strong><small>Aberto em 15/05/2025</small>
+          </div>
+          <div class="dash-card">
+            <div class="dash-card-icon" style="background:#e6f5ef;color:var(--green)"><i class="fas fa-user-tie"></i></div>
+            <span>Advogada</span><strong>Dra. Carla Mendes</strong><small>Especialista em VD</small>
+          </div>
+          <div class="dash-card">
+            <div class="dash-card-icon" style="background:#e8eef8;color:var(--blue)"><i class="fas fa-clock"></i></div>
+            <span>Próxima etapa</span><strong>Audiência</strong><small>28/05/2025 — 14h</small>
+          </div>
+          <div class="dash-card">
+            <div class="dash-card-icon" style="background:#fef3e2;color:var(--amber)"><i class="fas fa-file-upload"></i></div>
+            <span>Documentos</span><strong>5 arquivos</strong><small>3 analisados</small>
+          </div>
+        </div>
+        <!-- Status bar quick view -->
+        <div style="background:var(--white);border:1px solid var(--border);border-radius:var(--r2);padding:24px;margin-bottom:24px;box-shadow:var(--shadow)">
+          <h3 style="font-size:16px;color:var(--wine);margin-bottom:20px">Andamento do caso</h3>
+          <div class="status-bar">
+            <div class="status-step done"><div class="status-dot"><i class="fas fa-check"></i></div><p>BO Registrado</p></div>
+            <div class="status-step done"><div class="status-dot"><i class="fas fa-check"></i></div><p>Caso aberto</p></div>
+            <div class="status-step done"><div class="status-dot"><i class="fas fa-check"></i></div><p>Advogada atribuída</p></div>
+            <div class="status-step active"><div class="status-dot"><i class="fas fa-gavel"></i></div><p>Medida protetiva</p></div>
+            <div class="status-step"><div class="status-dot"><i class="fas fa-balance-scale"></i></div><p>Audiência</p></div>
+            <div class="status-step"><div class="status-dot"><i class="fas fa-flag-checkered"></i></div><p>Encerramento</p></div>
+          </div>
+        </div>
+        <div style="background:var(--blush);border:1px solid var(--rose);border-radius:var(--r);padding:14px 18px;display:flex;align-items:center;gap:12px;font-size:14px;color:var(--wine)">
+          <i class="fas fa-info-circle"></i>
+          <span><strong>Sua medida protetiva foi deferida.</strong> O agressor está proibido de se aproximar a menos de 300m. Em caso de descumprimento, ligue 190 imediatamente.</span>
+        </div>
+      </div>
+
+      <!-- STATUS -->
+      <div id="dash-status" class="dash-tab" style="display:none">
+        <div class="dash-header"><h2>Status do Caso</h2><span class="badge badge-wine">Em andamento</span></div>
+        <div style="background:var(--white);border:1px solid var(--border);border-radius:var(--r2);padding:28px;box-shadow:var(--shadow)">
+          <div class="status-bar" style="margin-bottom:28px">
+            <div class="status-step done"><div class="status-dot"><i class="fas fa-check"></i></div><p>BO Registrado</p></div>
+            <div class="status-step done"><div class="status-dot"><i class="fas fa-check"></i></div><p>Caso aberto</p></div>
+            <div class="status-step done"><div class="status-dot"><i class="fas fa-check"></i></div><p>Advogada atribuída</p></div>
+            <div class="status-step active"><div class="status-dot"><i class="fas fa-gavel"></i></div><p>Medida protetiva</p></div>
+            <div class="status-step"><div class="status-dot"><i class="fas fa-balance-scale"></i></div><p>Audiência</p></div>
+            <div class="status-step"><div class="status-dot"><i class="fas fa-flag-checkered"></i></div><p>Encerramento</p></div>
+          </div>
+          <h4 style="color:var(--wine);margin-bottom:14px">Linha do tempo</h4>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;gap:14px;align-items:flex-start"><div style="width:10px;height:10px;border-radius:50%;background:var(--green);margin-top:5px;flex-shrink:0"></div><div><strong style="font-size:13.5px">15/05/2025 — Boletim de Ocorrência registrado</strong><p style="font-size:13px;color:var(--mid)">Delegacia da Mulher de São Paulo — protocolo #2025-04821</p></div></div>
+            <div style="display:flex;gap:14px;align-items:flex-start"><div style="width:10px;height:10px;border-radius:50%;background:var(--green);margin-top:5px;flex-shrink:0"></div><div><strong style="font-size:13.5px">16/05/2025 — Caso aberto na plataforma</strong><p style="font-size:13px;color:var(--mid)">Dra. Carla Mendes atribuída ao caso</p></div></div>
+            <div style="display:flex;gap:14px;align-items:flex-start"><div style="width:10px;height:10px;border-radius:50%;background:var(--green);margin-top:5px;flex-shrink:0"></div><div><strong style="font-size:13.5px">18/05/2025 — Medida protetiva deferida</strong><p style="font-size:13px;color:var(--mid)">Juíza determinou afastamento de 300m e proibição de contato</p></div></div>
+            <div style="display:flex;gap:14px;align-items:flex-start"><div style="width:10px;height:10px;border-radius:50%;background:var(--wine);margin-top:5px;flex-shrink:0"></div><div><strong style="font-size:13.5px;color:var(--wine)">28/05/2025 — Audiência judicial agendada (próxima etapa)</strong><p style="font-size:13px;color:var(--mid)">Vara de Violência Doméstica — Fórum Central de SP, 14h</p></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MESSAGES -->
+      <div id="dash-msgs" class="dash-tab" style="display:none">
+        <div class="dash-header"><h2>Mensagens</h2><span class="badge badge-wine">2 não lidas</span></div>
+        <div class="msgs">
+          <div class="msg-item" style="border-left:3px solid var(--wine)">
+            <div class="msg-avatar" style="background:var(--wine);color:#fff">CM</div>
+            <div class="msg-body"><strong>Dra. Carla Mendes</strong><time>Hoje, 10:23</time><p>Olá Maria, a medida protetiva foi deferida pela juíza. Preciso que você me envie o comprovante de residência para prosseguir com o próximo passo...</p></div>
+            <span class="badge badge-wine">Nova</span>
+          </div>
+          <div class="msg-item" style="border-left:3px solid var(--wine)">
+            <div class="msg-avatar" style="background:var(--blue);color:#fff"><i class="fas fa-bell"></i></div>
+            <div class="msg-body"><strong>Sistema JurisApoio</strong><time>Ontem, 18:45</time><p>Sua audiência foi agendada para 28/05/2025 às 14h00 na Vara de Violência Doméstica do Fórum Central de SP.</p></div>
+            <span class="badge badge-wine">Nova</span>
+          </div>
+          <div class="msg-item">
+            <div class="msg-avatar" style="background:var(--green);color:#fff">CM</div>
+            <div class="msg-body"><strong>Dra. Carla Mendes</strong><time>16/05/2025</time><p>Recebi seu caso e já li os documentos. Vou entrar em contato amanhã para conversarmos sobre os próximos passos.</p></div>
+            <span class="badge badge-green">Lida</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- DOCUMENTS -->
+      <div id="dash-docs" class="dash-tab" style="display:none">
+        <div class="dash-header"><h2>Documentos e Provas</h2><a class="btn btn-wine" style="font-size:13px;padding:8px 16px"><i class="fas fa-upload"></i> Novo upload</a></div>
+        <div class="upload-box">
+          <i class="fas fa-cloud-upload-alt"></i>
+          <p><strong>Clique ou arraste arquivos aqui</strong><br><span style="font-size:12px">Fotos, áudios, PDFs, vídeos · Máx. 50 MB · Criptografados automaticamente</span></p>
+        </div>
+        <div class="file-list">
+          <div class="file-item"><div class="file-icon" style="background:var(--blush);color:var(--wine)"><i class="fas fa-file-pdf"></i></div><div class="file-info"><strong>boletim_ocorrencia.pdf</strong><span>1.2 MB · Enviado em 15/05/2025</span></div><span class="badge badge-green" style="margin-left:auto;margin-right:10px"><i class="fas fa-lock"></i> Criptografado</span><div class="file-actions"><button class="icon-btn" title="Baixar"><i class="fas fa-download"></i></button><button class="icon-btn" title="Excluir"><i class="fas fa-trash"></i></button></div></div>
+          <div class="file-item"><div class="file-icon" style="background:#fef3e2;color:var(--amber)"><i class="fas fa-file-image"></i></div><div class="file-info"><strong>foto_evidencia_01.jpg</strong><span>3.4 MB · Enviado em 15/05/2025</span></div><span class="badge badge-green" style="margin-left:auto;margin-right:10px"><i class="fas fa-lock"></i> Criptografado</span><div class="file-actions"><button class="icon-btn"><i class="fas fa-download"></i></button><button class="icon-btn"><i class="fas fa-trash"></i></button></div></div>
+          <div class="file-item"><div class="file-icon" style="background:#e8eef8;color:var(--blue)"><i class="fas fa-file-audio"></i></div><div class="file-info"><strong>audio_ameaca.mp3</strong><span>2.1 MB · Enviado em 16/05/2025</span></div><span class="badge badge-green" style="margin-left:auto;margin-right:10px"><i class="fas fa-lock"></i> Criptografado</span><div class="file-actions"><button class="icon-btn"><i class="fas fa-download"></i></button><button class="icon-btn"><i class="fas fa-trash"></i></button></div></div>
+          <div class="file-item"><div class="file-icon" style="background:var(--blush);color:var(--wine)"><i class="fas fa-file-pdf"></i></div><div class="file-info"><strong>laudo_medico.pdf</strong><span>0.8 MB · Enviado em 17/05/2025</span></div><span class="badge badge-amber" style="margin-left:auto;margin-right:10px"><i class="fas fa-clock"></i> Em análise</span><div class="file-actions"><button class="icon-btn"><i class="fas fa-download"></i></button><button class="icon-btn"><i class="fas fa-trash"></i></button></div></div>
+        </div>
+      </div>
+
+      <!-- HISTORY -->
+      <div id="dash-history" class="dash-tab" style="display:none">
+        <div class="dash-header"><h2>Histórico de Atendimentos</h2></div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;box-shadow:var(--shadow)">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+              <strong style="font-size:15px">#JA-2025-4821 — Caso atual</strong><span class="badge badge-green">Em andamento</span>
+            </div>
+            <p style="font-size:13.5px;color:var(--mid)">Advogada: Dra. Carla Mendes · Aberto em 15/05/2025 · Tipo: Violência Doméstica</p>
+          </div>
+          <div style="background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;box-shadow:var(--shadow);opacity:.7">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+              <strong style="font-size:15px">#JA-2024-1203 — Consulta de orientação</strong><span class="badge badge-blue">Encerrado</span>
+            </div>
+            <p style="font-size:13.5px;color:var(--mid)">Advogado: Dr. Rafael Silva · Jan–Fev 2024 · Tipo: Orientação sobre divórcio</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════ -->
+<!-- PAGE: CHAT -->
+<!-- ══════════════════════════════════════════════════ -->
+<div class="page" id="page-chat">
+  <div style="padding-top:64px;height:100vh;display:flex;flex-direction:column">
+    <div class="chat-layout" style="flex:1">
+      <!-- Sidebar -->
+      <div class="chat-sidebar">
+        <div class="chat-sidebar-header">
+          <h3><i class="fas fa-lock" style="color:var(--wine);font-size:13px"></i> Conversas</h3>
+          <button class="icon-btn"><i class="fas fa-edit"></i></button>
+        </div>
+        <div class="chat-search"><input type="text" placeholder="🔍  Buscar conversa..."/></div>
+        <div class="chat-contacts">
+          <div class="chat-contact active">
+            <div class="contact-avatar" style="background:var(--wine);color:#fff">CM</div>
+            <div class="contact-info"><strong>Dra. Carla Mendes</strong><span>Sua mensagem foi recebida...</span></div>
+            <div class="contact-meta"><time>10:23</time><div class="unread">2</div></div>
+          </div>
+          <div class="chat-contact">
+            <div class="contact-avatar" style="background:var(--blue);color:#fff"><i class="fas fa-shield-alt" style="font-size:14px"></i></div>
+            <div class="contact-info"><strong>Suporte JurisApoio</strong><span>Como podemos ajudar?</span></div>
+            <div class="contact-meta"><time>Ontem</time></div>
+          </div>
+          <div class="chat-contact">
+            <div class="contact-avatar" style="background:var(--green);color:#fff">DP</div>
+            <div class="contact-info"><strong>Defensoria Pública SP</strong><span>Seu caso foi recebido.</span></div>
+            <div class="contact-meta"><time>16/05</time></div>
+          </div>
+        </div>
+      </div>
+      <!-- Chat Main -->
+      <div class="chat-main">
+        <div class="chat-topbar">
+          <div class="contact-avatar" style="background:var(--wine);color:#fff;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;flex-shrink:0">CM</div>
+          <div class="chat-topbar-info"><strong>Dra. Carla Mendes</strong><span><i class="fas fa-circle" style="font-size:8px"></i> Online agora</span></div>
+          <div class="chat-topbar-actions">
+            <button class="icon-btn" title="Chamada de vídeo"><i class="fas fa-video"></i></button>
+            <button class="icon-btn" title="Informações"><i class="fas fa-info-circle"></i></button>
+          </div>
+        </div>
+        <div class="chat-privacy-bar"><i class="fas fa-lock"></i> Conversa criptografada ponta a ponta · Suas mensagens são privadas e seguras · Protocolo #JA-2025-4821</div>
+        <div class="chat-messages">
+          <div class="chat-msg recv">
+            <div class="msg-avt" style="background:var(--wine);color:#fff">CM</div>
+            <div><div class="msg-bubble">Olá, Maria. Recebi seu caso e já analisei os documentos que você enviou. Primeiro, quero que saiba que você está segura agora e tomou uma decisão muito corajosa.</div><div class="msg-time">10:05</div></div>
+          </div>
+          <div class="chat-msg recv">
+            <div class="msg-avt" style="background:var(--wine);color:#fff">CM</div>
+            <div><div class="msg-bubble">A medida protetiva foi deferida pela juíza hoje de manhã. O agressor está legalmente proibido de se aproximar a menos de 300 metros de você, da sua residência e do seu local de trabalho.</div><div class="msg-time">10:06</div></div>
+          </div>
+          <div class="chat-msg sent">
+            <div class="msg-avt" style="background:var(--rose);color:#fff">M</div>
+            <div><div class="msg-bubble">Dra. Carla, muito obrigada. Fico aliviada ao saber disso. O que acontece agora? Qual é o próximo passo?</div><div class="msg-time">10:18</div></div>
+          </div>
+          <div class="chat-msg recv">
+            <div class="msg-avt" style="background:var(--wine);color:#fff">CM</div>
+            <div><div class="msg-bubble">Agora temos a audiência marcada para 28/05, às 14h, no Fórum Central. Preciso que você me envie o comprovante de residência e, se possível, alguma testemunha de confiança. Pode ser familiar ou vizinho.</div><div class="msg-time">10:23</div></div>
+          </div>
+          <div style="text-align:center;font-size:12px;color:var(--soft);padding:8px;background:rgba(0,0,0,.03);border-radius:8px">🔒 Mensagens criptografadas · Não armazenadas após encerramento do caso</div>
+        </div>
+        <div class="chat-input-bar">
+          <button class="icon-btn"><i class="fas fa-paperclip"></i></button>
+          <input class="chat-input" type="text" placeholder="Digite sua mensagem com segurança..."/>
+          <button class="chat-send"><i class="fas fa-paper-plane"></i></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════ -->
+<!-- PAGE: SOBRE -->
+<!-- ══════════════════════════════════════════════════ -->
+<div class="page" id="page-sobre">
+  <div class="about-hero">
+    <h1>Sobre o JurisApoio</h1>
+    <p>Uma plataforma nascida do compromisso com a justiça social, a dignidade das mulheres e o poder transformador do Direito.</p>
+  </div>
+  <section>
+    <div class="section-inner">
+      <div class="section-tag">Nossa missão</div>
+      <h2 class="section-title">Por que o JurisApoio existe</h2>
+      <p style="font-size:16px;color:var(--mid);max-width:680px;margin-bottom:40px;line-height:1.75">No Brasil, mais de 11 milhões de mulheres já sofreram violência doméstica grave — e a maioria não tem acesso a orientação jurídica qualificada. O JurisApoio surgiu para mudar essa realidade, conectando vítimas com profissionais do Direito de forma gratuita, segura e acessível.</p>
+      <div class="mission-grid">
+        <div class="mission-card"><i class="fas fa-heart" style="color:var(--wine)"></i><h3>Nossa Missão</h3><p>Democratizar o acesso à justiça para mulheres vítimas de violência, garantindo orientação jurídica qualificada, gratuita e humanizada, independentemente de localização ou condição financeira.</p></div>
+        <div class="mission-card"><i class="fas fa-eye" style="color:var(--blue)"></i><h3>Nossa Visão</h3><p>Ser a maior rede de apoio jurídico gratuito para mulheres no Brasil, presente em todos os estados, com impacto direto na redução da violência de gênero e no fortalecimento do sistema de proteção.</p></div>
+        <div class="mission-card"><i class="fas fa-hand-holding-heart" style="color:var(--green)"></i><h3>Nossos Valores</h3><p>Empatia, confidencialidade, acessibilidade, rigor jurídico e compromisso com os direitos humanos. Toda decisão da plataforma parte das necessidades reais das mulheres atendidas.</p></div>
+      </div>
+    </div>
+  </section>
+  <section style="background:var(--white)">
+    <div class="section-inner">
+      <div class="section-tag">Impacto social</div>
+      <h2 class="section-title">Números que transformam vidas</h2>
+      <div class="impact-numbers">
+        <div class="impact-num"><strong>4.800+</strong><span>casos atendidos</span></div>
+        <div class="impact-num"><strong>320+</strong><span>advogados voluntários</span></div>
+        <div class="impact-num"><strong>26</strong><span>estados alcançados</span></div>
+        <div class="impact-num"><strong>96%</strong><span>satisfação das usuárias</span></div>
+        <div class="impact-num"><strong>72%</strong><span>medidas protetivas obtidas</span></div>
+        <div class="impact-num"><strong>24h</strong><span>tempo médio de resposta</span></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ══════════════════════════════════════════════════ -->
+<!-- PAGE: SEGURANÇA -->
+<!-- ══════════════════════════════════════════════════ -->
+<div class="page" id="page-seguranca">
+  <div class="sec-hero">
+    <h1>Segurança & Privacidade</h1>
+    <p>Sua proteção de dados é tão importante quanto sua proteção física. Saiba como mantemos suas informações seguras.</p>
+  </div>
+  <section>
+    <div class="section-inner">
+      <div class="sec-grid">
+        <div class="sec-card"><div class="sec-card-icon" style="background:#e8eef8;color:var(--blue)"><i class="fas fa-lock"></i></div><h3>Criptografia TLS 1.3</h3><p>Toda comunicação entre o seu dispositivo e nossos servidores é protegida pelo protocolo TLS 1.3, o padrão mais avançado de segurança em trânsito disponível atualmente.</p></div>
+        <div class="sec-card"><div class="sec-card-icon" style="background:var(--blush);color:var(--wine)"><i class="fas fa-user-secret"></i></div><h3>Anonimato garantido</h3><p>Não exigimos CPF nem nome completo no cadastro inicial. Você pode usar a plataforma com um apelido. Suas informações são pseudonimizadas internamente.</p></div>
+        <div class="sec-card"><div class="sec-card-icon" style="background:#e6f5ef;color:var(--green)"><i class="fas fa-database"></i></div><h3>AES-256 em repouso</h3><p>Todos os documentos e mensagens armazenados são criptografados com AES-256-GCM. Apenas você e seu advogado têm acesso ao conteúdo.</p></div>
+        <div class="sec-card"><div class="sec-card-icon" style="background:#fef3e2;color:var(--amber)"><i class="fas fa-shield-virus"></i></div><h3>OWASP Top 10</h3><p>Nossa plataforma é desenvolvida seguindo as melhores práticas de segurança da OWASP, protegendo contra as 10 vulnerabilidades mais críticas da web.</p></div>
+        <div class="sec-card"><div class="sec-card-icon" style="background:#e8eef8;color:var(--blue)"><i class="fas fa-trash-alt"></i></div><h3>Direito ao esquecimento</h3><p>Você pode solicitar a exclusão completa da sua conta e de todos os dados associados a qualquer momento, conforme garantido pelo Art. 18 da LGPD.</p></div>
+        <div class="sec-card"><div class="sec-card-icon" style="background:var(--blush);color:var(--wine)"><i class="fas fa-history"></i></div><h3>Logs com retenção limitada</h3><p>Logs de acesso são mantidos por no máximo 6 meses e nunca contêm o conteúdo das mensagens, apenas metadados técnicos necessários à segurança.</p></div>
+      </div>
+      <div class="lgpd-block">
+        <h3><i class="fas fa-gavel" style="margin-right:10px"></i> Conformidade com a LGPD</h3>
+        <p>O JurisApoio está em conformidade plena com a Lei Geral de Proteção de Dados (Lei 13.709/2018). Implementamos todos os princípios estabelecidos pela legislação: finalidade, necessidade, transparência, segurança e não discriminação.</p>
+        <div class="lgpd-items">
+          <div class="lgpd-item"><i class="fas fa-check-circle"></i> Consentimento explícito registrado</div>
+          <div class="lgpd-item"><i class="fas fa-check-circle"></i> Portabilidade de dados</div>
+          <div class="lgpd-item"><i class="fas fa-check-circle"></i> Direito ao esquecimento</div>
+          <div class="lgpd-item"><i class="fas fa-check-circle"></i> Minimização de dados</div>
+          <div class="lgpd-item"><i class="fas fa-check-circle"></i> Encarregado (DPO) designado</div>
+          <div class="lgpd-item"><i class="fas fa-check-circle"></i> Relatório de impacto (RIPD)</div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+// ── PAGE NAVIGATION ───────────────────────────────
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+  const navEl = document.getElementById('nav-' + id);
+  if (navEl) navEl.classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+// ── DASHBOARD TABS ────────────────────────────────
+function showDashTab(id, el) {
+  document.querySelectorAll('.dash-tab').forEach(t => t.style.display = 'none');
+  document.getElementById('dash-' + id).style.display = 'block';
+  document.querySelectorAll('.dash-menu a').forEach(a => a.classList.remove('active'));
+  if (el) el.classList.add('active');
+}
+
+// ── FAQ TOGGLE ────────────────────────────────────
+function toggleFaq(el) {
+  const ans = el.nextElementSibling;
+  const icon = el.querySelector('i');
+  if (ans.classList.contains('hidden')) {
+    ans.classList.remove('hidden');
+    icon.style.transform = 'rotate(180deg)';
+  } else {
+    ans.classList.add('hidden');
+    icon.style.transform = '';
+  }
+}
+
+// ── CHAT SEND (demo) ──────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  const input = document.querySelector('.chat-input');
+  const send  = document.querySelector('.chat-send');
+  const msgs  = document.querySelector('.chat-messages');
+  if (!input || !send || !msgs) return;
+  function sendMsg() {
+    const val = input.value.trim();
+    if (!val) return;
+    const div = document.createElement('div');
+    div.className = 'chat-msg sent';
+    const now = new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    div.innerHTML = `<div class="msg-avt" style="background:var(--rose);color:#fff">M</div><div><div class="msg-bubble">${val}</div><div class="msg-time">${now}</div></div>`;
+    msgs.appendChild(div);
+    input.value = '';
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+  send.addEventListener('click', sendMsg);
+  input.addEventListener('keypress', e => { if (e.key === 'Enter') sendMsg(); });
+});
+</script>
+</body>
+</html>

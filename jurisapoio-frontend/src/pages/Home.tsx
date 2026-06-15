@@ -1,0 +1,152 @@
+import { Link } from "react-router-dom";
+
+export function Home() {
+  return (
+    <div className="page active" id="page-home">
+      {/* HERO */}
+      <div className="hero">
+        <div className="hero-badge">
+          <i className="fas fa-shield-alt"></i> Confidencial · Gratuito · Seguro
+        </div>
+        <h1>Você não está sozinha.<br />Temos advogados prontos para te ajudar.</h1>
+        <p>Conectamos vítimas de violência contra a mulher com advogados voluntários especializados, de forma gratuita, confidencial e 100% segura.</p>
+        <div className="hero-btns">
+          <Link className="btn btn-primary" to="/dashboard">
+            <i className="fas fa-hands-helping"></i> Solicitar Ajuda Agora
+          </Link>
+          <Link className="btn btn-outline" to="/orientacao">
+            <i className="fas fa-book-open"></i> Conhecer Meus Direitos
+          </Link>
+        </div>
+        <div className="hero-stats">
+          <div className="hero-stat"><strong>4.800+</strong><span>casos atendidos</span></div>
+          <div className="hero-stat"><strong>320+</strong><span>advogados voluntários</span></div>
+          <div className="hero-stat"><strong>96%</strong><span>satisfação das usuárias</span></div>
+          <div className="hero-stat"><strong>24h</strong><span>resposta média</span></div>
+        </div>
+      </div>
+
+      {/* HOW IT WORKS */}
+      <section style={{ background: "var(--white)" }}>
+        <div className="section-inner">
+          <div className="section-tag">Como funciona</div>
+          <h2 className="section-title">Simples, rápido e seguro</h2>
+          <p className="section-sub">Em poucos passos você tem acesso a orientação jurídica especializada, sem burocracia.</p>
+          <div className="steps">
+            <div className="step">
+              <div className="step-num">1</div>
+              <h3>Cadastro anônimo</h3>
+              <p>Crie sua conta usando apenas um apelido. Não pedimos CPF nem nome completo na etapa inicial. Sua segurança vem primeiro.</p>
+            </div>
+            <div className="step">
+              <div className="step-num">2</div>
+              <h3>Descreva sua situação</h3>
+              <p>Responda a um formulário guiado sobre o que aconteceu. O sistema classifica e direciona para o profissional mais adequado.</p>
+            </div>
+            <div className="step">
+              <div className="step-num">3</div>
+              <h3>Conecte-se ao advogado</h3>
+              <p>Um advogado voluntário especializado entra em contato via chat seguro e criptografado em até 24 horas.</p>
+            </div>
+            <div className="step">
+              <div className="step-num">4</div>
+              <h3>Acompanhe seu caso</h3>
+              <p>Acompanhe o andamento pelo painel, envie documentos e receba atualizações sobre seu processo em linguagem simples.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* TESTIMONIALS */}
+      <section>
+        <div className="section-inner">
+          <div className="section-tag">Depoimentos</div>
+          <h2 className="section-title">O que dizem as usuárias</h2>
+          <p className="section-sub">Histórias reais de superação e acesso à justiça.</p>
+          <div className="testimonials-grid">
+            <div className="testimonial">
+              <p className="testimonial-text">Eu não sabia que tinha direito à medida protetiva. O advogado do JurisApoio me explicou tudo em linguagem simples e me ajudou a registrar o boletim. Me senti acolhida e segura.</p>
+              <div className="testimonial-author">
+                <div className="author-avatar" style={{ background: "#c4617a" }}>M</div>
+                <div className="author-info"><strong>Maria S.</strong><span>São Paulo, SP</span></div>
+              </div>
+            </div>
+            <div className="testimonial">
+              <p className="testimonial-text">Fiquei surpresa com a rapidez. Em menos de 12 horas já tinha um advogado conversando comigo. O chat é seguro e privado. Recomendo para todas as mulheres que precisam de apoio.</p>
+              <div className="testimonial-author">
+                <div className="author-avatar" style={{ background: "#500416" }}>A</div>
+                <div className="author-info"><strong>Ana C.</strong><span>Belo Horizonte, MG</span></div>
+              </div>
+            </div>
+            <div className="testimonial">
+              <p className="testimonial-text">Não tinha condições de pagar um advogado. O JurisApoio foi fundamental para conseguir a guarda dos meus filhos. Obrigada por existir e por acreditar em mim.</p>
+              <div className="testimonial-author">
+                <div className="author-avatar" style={{ background: "#2d7a5b" }}>J</div>
+                <div className="author-info"><strong>Juliana M.</strong><span>Fortaleza, CE</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* BANNER */}
+      <section style={{ background: "var(--warm)" }}>
+        <div className="section-inner">
+          <div className="banner">
+            <div className="banner-icon">⚖️</div>
+            <div>
+              <h2>A justiça é um direito de todas.<br />Não de quem pode pagar.</h2>
+              <p>O JurisApoio nasceu para garantir que nenhuma mulher vítima de violência fique sem acesso a orientação jurídica qualificada, independentemente de sua condição financeira.</p>
+              <Link className="btn btn-primary" to="/orientacao">Conhecer meus direitos</Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer>
+        <div className="footer-inner">
+          <div className="footer-grid">
+            <div className="footer-brand">
+              <div className="footer-logo">
+                <div className="footer-logo-icon"><i className="fas fa-balance-scale"></i></div>
+                <span className="footer-logo-text">JurisApoio</span>
+              </div>
+              <p>Plataforma de apoio jurídico gratuito para vítimas de violência contra a mulher. Confidencial, seguro e acessível.</p>
+              <div className="footer-socials">
+                <div className="social-btn"><i className="fab fa-instagram"></i></div>
+                <div className="social-btn"><i className="fab fa-facebook"></i></div>
+                <div className="social-btn"><i className="fab fa-whatsapp"></i></div>
+              </div>
+            </div>
+            <div className="footer-col">
+              <h4>Plataforma</h4>
+              <Link to="/">Início</Link>
+              <Link to="/lawyers">Advogados</Link>
+              <Link to="/orientacao">Orientação Jurídica</Link>
+              <Link to="/dashboard">Minha Área</Link>
+            </div>
+            <div className="footer-col">
+              <h4>Institucional</h4>
+              <Link to="/sobre">Sobre o projeto</Link>
+              <Link to="/seguranca">Segurança</Link>
+              <a href="#">Política de privacidade</a>
+              <a href="#">Termos de uso</a>
+            </div>
+            <div className="footer-col">
+              <h4>Emergência</h4>
+              <a href="tel:180">📞 180 — Central da Mulher</a>
+              <a href="tel:190">📞 190 — Polícia</a>
+              <a href="tel:192">📞 192 — SAMU</a>
+              <a href="tel:100">📞 Disque 100 — Direitos Humanos</a>
+            </div>
+          </div>
+          <div className="footer-bottom">
+            <p>© 2025 JurisApoio · Trabalho Acadêmico · Todos os dados são fictícios</p>
+            <p style={{ opacity: 0.4 }}>Desenvolvido com 💜 para combater a violência contra a mulher</p>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}
