@@ -219,6 +219,51 @@ export function DashboardAdvogado() {
     }
   };
 
+  const handleCloseCase = async (caseId: string) => {
+    if (!confirm("Deseja realmente encerrar este caso permanentemente? Esta ação arquivará o atendimento e removerá o histórico de mensagens por segurança.")) {
+      return;
+    }
+
+    const result = prompt("Por favor, informe a justificativa ou resultado do encerramento (obrigatório):", "Orientação concluída");
+    if (result === null) return;
+    const trimmedResult = result.trim();
+    if (!trimmedResult) {
+      alert("O resultado do encerramento é obrigatório!");
+      return;
+    }
+
+    if (caseId === "maria-oliveira") {
+      setMyCases(prev => prev.filter(c => c.id !== caseId));
+      localStorage.removeItem("chat_accepted");
+      localStorage.removeItem("chat_carlamendes");
+      localStorage.removeItem("active_case_id");
+      localStorage.removeItem("triage_completed");
+      setIsChatAccepted(false);
+      alert("Caso simulado encerrado com sucesso.");
+      return;
+    }
+
+    try {
+      await casoService.encerrarCaso(caseId, { resultado: trimmedResult });
+      
+      setMyCases(prev => prev.filter(c => c.id !== caseId));
+      
+      const activeId = localStorage.getItem("active_case_id");
+      if (activeId === caseId) {
+        localStorage.removeItem("chat_accepted");
+        localStorage.removeItem("chat_carlamendes");
+        localStorage.removeItem("active_case_id");
+        setIsChatAccepted(false);
+      }
+      
+      alert("Caso encerrado com sucesso. O histórico de mensagens foi apagado.");
+    } catch (err: any) {
+      console.error("Erro ao encerrar caso:", err);
+      alert(err.response?.data?.mensagem || "Erro ao encerrar o caso.");
+    }
+  };
+
+
   const handleResetSimulation = () => {
     if (confirm("Deseja resetar toda a simulação para os valores padrões?")) {
       localStorage.removeItem("triage_completed");
@@ -472,6 +517,13 @@ export function DashboardAdvogado() {
                       </div>
 
                       <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", borderTop: "1px solid var(--border)", paddingTop: "14px" }}>
+                        <button
+                          onClick={() => handleCloseCase(c.id)}
+                          className="btn btn-ghost"
+                          style={{ fontSize: "13.5px", padding: "8px 18px", color: "var(--wine)", borderColor: "var(--wine)" }}
+                        >
+                          <i className="fas fa-gavel"></i> Encerrar Caso
+                        </button>
                         <button
                           onClick={() => {
                             localStorage.setItem("chat_carlamendes", "true"); // Ensures chat is enabled
