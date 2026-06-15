@@ -20,5 +20,13 @@ export const casoService = {
 
   atribuirAdvogado(id: string, advogadoId: string) {
     return api.put<CasoResponse>(`/api/casos/${id}/advogado/${advogadoId}`);
+  },
+
+  listarCasosPendentes() {
+    return api.get<CasoResponse[]>("/api/casos/pendentes");
+  },
+
+  aceitarCaso(id: string) {
+    return api.put<CasoResponse>(`/api/casos/${id}/aceitar`);
   }
 };

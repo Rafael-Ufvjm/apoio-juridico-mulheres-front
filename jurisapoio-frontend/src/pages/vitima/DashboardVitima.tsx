@@ -16,7 +16,7 @@ interface Message {
 
 export function DashboardVitima() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<"overview" | "triagem" | "status" | "msgs">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "triagem" | "msgs">("overview");
 
   // Victim profile state
   const [victimName, setVictimName] = useState("Maria Oliveira");
@@ -36,70 +36,12 @@ export function DashboardVitima() {
   const [urgencyLevel, setUrgencyLevel] = useState<"Alta" | "Moderada">("Moderada");
   const [lawyerAccepted, setLawyerAccepted] = useState(false);
 
-  // Load state from backend (or fallback to localStorage on mount)
-  useEffect(() => {
-    async function loadData() {
-      try {
-        const profileRes = await vitimaService.obterPerfil();
-        if (profileRes.data && profileRes.data.nomeAnonimo) {
-          setVictimName(profileRes.data.nomeAnonimo);
-        }
+  const [assignedLawyerName, setAssignedLawyerName] = useState<string>("Buscando profissional");
+  const [assignedLawyerOab, setAssignedLawyerOab] = useState<string>("");
+  const [assignedLawyerSpecialties, setAssignedLawyerSpecialties] = useState<string[]>([]);
+  const [protocolo, setProtocolo] = useState("#JA-2025-4821");
 
-        const casesRes = await casoService.listarCasosDaVitima();
-        const activeCase = casesRes.data.find(
-          c => c.status === "AGUARDANDO" || c.status === "EM_ATENDIMENTO"
-        );
-
-        if (activeCase) {
-          setTriageCompleted(true);
-          const isHigh = activeCase.tipoViolencia === "FISICA" || activeCase.tipoViolencia === "SEXUAL";
-          const urgency = isHigh ? "Alta" : "Moderada";
-          setUrgencyLevel(urgency);
-          
-          localStorage.setItem("active_case_id", activeCase.id);
-          localStorage.setItem("triage_completed", "true");
-          localStorage.setItem("triage_urgency", urgency);
-
-          if (activeCase.advogado) {
-            setLawyerAccepted(true);
-            localStorage.setItem("chat_accepted", "true");
-            localStorage.setItem("chat_carlamendes", "true");
-          } else {
-            setLawyerAccepted(false);
-            localStorage.removeItem("chat_accepted");
-            localStorage.removeItem("chat_carlamendes");
-          }
-        } else {
-          // No active case on backend
-          localStorage.removeItem("active_case_id");
-          localStorage.removeItem("triage_completed");
-          localStorage.removeItem("triage_urgency");
-          localStorage.removeItem("chat_accepted");
-          localStorage.removeItem("chat_carlamendes");
-          setTriageCompleted(false);
-          setLawyerAccepted(false);
-        }
-      } catch (error) {
-        console.warn("Backend offline ou sem sessão ativa. Carregando simulação local...", error);
-        
-        // Fallback local mockup load
-        const savedTriage = localStorage.getItem("triage_completed");
-        if (savedTriage === "true") {
-          setTriageCompleted(true);
-          const savedUrgency = localStorage.getItem("triage_urgency");
-          if (savedUrgency) setUrgencyLevel(savedUrgency as "Alta" | "Moderada");
-          
-          const savedAccepted = localStorage.getItem("chat_accepted");
-          if (savedAccepted === "true") {
-            setLawyerAccepted(true);
-          }
-        }
-      }
-    }
-    loadData();
-  }, []);
-
-  const [messages] = useState<Message[]>([
+  const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
       sender: "Sistema JurisApoio",
@@ -110,6 +52,160 @@ export function DashboardVitima() {
       color: "var(--blue)"
     }
   ]);
+
+  async function loadData() {
+    try {
+      const profileRes = await vitimaService.obterPerfil();
+      if (profileRes.data && profileRes.data.nomeAnonimo) {
+        setVictimName(profileRes.data.nomeAnonimo);
+      }
+
+      const casesRes = await casoService.listarCasosDaVitima();
+      const activeCase = casesRes.data.find(
+        c => c.status === "AGUARDANDO" || c.status === "EM_ATENDIMENTO"
+      );
+
+      const newMessagesList: Message[] = [
+        {
+          id: 1,
+          sender: "Sistema JurisApoio",
+          avatar: "🔔",
+          time: "Hoje, 10:23",
+          content: "Bem-vinda à plataforma! Por favor, realize a sua Triagem para que possamos te conectar com um advogado voluntário.",
+          status: "Lida",
+          color: "var(--blue)"
+        }
+      ];
+
+      if (activeCase) {
+        setTriageCompleted(true);
+        const isHigh = activeCase.tipoViolencia === "FISICA" || activeCase.tipoViolencia === "SEXUAL";
+        const urgency = isHigh ? "Alta" : "Moderada";
+        setUrgencyLevel(urgency);
+        const currentProtocol = activeCase.protocolo || "";
+        setProtocolo(currentProtocol);
+        
+        localStorage.setItem("active_case_id", activeCase.id);
+        localStorage.setItem("triage_completed", "true");
+        localStorage.setItem("triage_urgency", urgency);
+
+        newMessagesList.push({
+          id: 2,
+          sender: "Sistema JurisApoio",
+          avatar: "💼",
+          time: activeCase.timestampAbertura ? new Date(activeCase.timestampAbertura).toLocaleString("pt-BR", { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }) : "Hoje",
+          content: `Sua solicitação de atendimento foi aberta com sucesso. Protocolo: ${currentProtocol}. Risco avaliado: ${urgency === "Alta" ? "Alto 🚨" : "Moderado ⚠️"}. Aguardando aceitação de um profissional voluntário na rede.`,
+          status: "Nova",
+          color: "var(--wine)"
+        });
+
+        if (activeCase.advogado) {
+          setLawyerAccepted(true);
+          setAssignedLawyerName(activeCase.advogado.nome);
+          setAssignedLawyerOab(activeCase.advogado.numeroOAB || "");
+          setAssignedLawyerSpecialties(
+            activeCase.advogado.especialidades 
+              ? activeCase.advogado.especialidades.split(",") 
+              : ["Apoio Jurídico"]
+          );
+          localStorage.setItem("chat_accepted", "true");
+          localStorage.setItem("chat_carlamendes", "true");
+
+          newMessagesList.push({
+            id: 3,
+            sender: "Sistema JurisApoio",
+            avatar: "🤝",
+            time: "Recentemente",
+            content: `Conexão estabelecida! A advogada ${activeCase.advogado.nome} (OAB ${activeCase.advogado.numeroOAB || ""}) aceitou o seu caso. Acesse o chat seguro para iniciar seu atendimento.`,
+            status: "Nova",
+            color: "var(--green)"
+          });
+        } else {
+          setLawyerAccepted(false);
+          setAssignedLawyerName("Buscando profissional");
+          setAssignedLawyerOab("");
+          setAssignedLawyerSpecialties([]);
+          localStorage.removeItem("chat_accepted");
+          localStorage.removeItem("chat_carlamendes");
+        }
+      } else {
+        // No active case on backend
+        localStorage.removeItem("active_case_id");
+        localStorage.removeItem("triage_completed");
+        localStorage.removeItem("triage_urgency");
+        localStorage.removeItem("chat_accepted");
+        localStorage.removeItem("chat_carlamendes");
+        setTriageCompleted(false);
+        setLawyerAccepted(false);
+        setAssignedLawyerName("Buscando profissional");
+        setAssignedLawyerOab("");
+        setAssignedLawyerSpecialties([]);
+      }
+
+      setMessages(newMessagesList);
+    } catch (error) {
+      console.warn("Backend offline ou sem sessão ativa. Carregando simulação local...", error);
+      
+      const newMessagesList: Message[] = [
+        {
+          id: 1,
+          sender: "Sistema JurisApoio",
+          avatar: "🔔",
+          time: "Hoje, 10:23",
+          content: "Bem-vinda à plataforma! Por favor, realize a sua Triagem para que possamos te conectar com um advogado voluntário.",
+          status: "Lida",
+          color: "var(--blue)"
+        }
+      ];
+
+      // Fallback local mockup load
+      const savedTriage = localStorage.getItem("triage_completed");
+      if (savedTriage === "true") {
+        setTriageCompleted(true);
+        const savedUrgency = localStorage.getItem("triage_urgency");
+        const urgency = (savedUrgency as "Alta" | "Moderada") || "Moderada";
+        if (savedUrgency) setUrgencyLevel(urgency);
+
+        newMessagesList.push({
+          id: 2,
+          sender: "Sistema JurisApoio",
+          avatar: "💼",
+          time: "Hoje, 10:25",
+          content: `Sua solicitação de atendimento foi aberta com sucesso. Protocolo: ${protocolo}. Risco avaliado: ${urgency === "Alta" ? "Alto 🚨" : "Moderado ⚠️"}. Aguardando aceitação de um profissional voluntário na rede.`,
+          status: "Nova",
+          color: "var(--wine)"
+        });
+        
+        const savedAccepted = localStorage.getItem("chat_accepted");
+        if (savedAccepted === "true") {
+          setLawyerAccepted(true);
+          setAssignedLawyerName("Dra. Carla Mendes");
+          setAssignedLawyerOab("187.432/SP");
+          setAssignedLawyerSpecialties(["Violência Doméstica", "Medida Protetiva"]);
+
+          newMessagesList.push({
+            id: 3,
+            sender: "Sistema JurisApoio",
+            avatar: "🤝",
+            time: "Hoje, 10:27",
+            content: `Conexão estabelecida! A advogada Dra. Carla Mendes (OAB 187.432/SP) aceitou o seu caso. Acesse o chat seguro para iniciar seu atendimento.`,
+            status: "Nova",
+            color: "var(--green)"
+          });
+        }
+      }
+      setMessages(newMessagesList);
+    }
+  }
+
+  // Load state from backend (or fallback to localStorage on mount)
+  useEffect(() => {
+    loadData();
+
+    // Poll every 4 seconds to sync status with the backend in real-time
+    const interval = setInterval(loadData, 4000);
+    return () => clearInterval(interval);
+  }, []);
 
   const toggleViolenceType = (type: string) => {
     setViolenceTypes(prev => 
@@ -166,6 +262,8 @@ export function DashboardVitima() {
       localStorage.setItem("triage_completed", "true");
       localStorage.setItem("triage_urgency", severity);
 
+      await loadData();
+
       alert("Triagem concluída com sucesso! Analisamos suas respostas e identificamos as melhores diretrizes de segurança.");
       setActiveTab("triagem");
     } catch (error) {
@@ -175,6 +273,8 @@ export function DashboardVitima() {
       setTriageCompleted(true);
       localStorage.setItem("triage_completed", "true");
       localStorage.setItem("triage_urgency", severity);
+
+      await loadData();
 
       alert("Triagem concluída com sucesso (Modo Simulado)! Analisamos suas respostas e identificamos as melhores diretrizes de segurança.");
       setActiveTab("triagem");
@@ -199,15 +299,9 @@ export function DashboardVitima() {
     }
   };
 
-  const handleSimulateAccept = () => {
-    setLawyerAccepted(true);
-    localStorage.setItem("chat_accepted", "true");
-    alert("Dra. Carla Mendes aceitou o seu atendimento voluntário!");
-  };
-
   const handleConnectAdvocate = () => {
     localStorage.setItem("chat_carlamendes", "true");
-    alert("Conexão estabelecida! Um canal de chat criptografado seguro com a Dra. Carla Mendes foi aberto.");
+    alert(`Conexão estabelecida! Um canal de chat criptografado seguro com a ${assignedLawyerName} foi aberto.`);
     navigate("/chat");
   };
 
@@ -241,19 +335,19 @@ export function DashboardVitima() {
             </button>
 
             <button
-              onClick={() => setActiveTab("status")}
-              className={`w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition ${activeTab === "status" ? "bg-white/10 text-white font-medium" : "text-white/70 hover:bg-white/5 hover:text-white"}`}
-              style={{ background: activeTab === "status" ? "rgba(255,255,255,0.12)" : "transparent", color: "#fff", border: "none", cursor: "pointer", font: "inherit" }}
-            >
-              <i className="fas fa-tasks w-5 text-center"></i> Status do Caso
-            </button>
-            <button
-              onClick={() => setActiveTab("msgs")}
+              onClick={() => {
+                setActiveTab("msgs");
+                setMessages(prev => prev.map(m => ({ ...m, status: "Lida" })));
+              }}
               className={`w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition ${activeTab === "msgs" ? "bg-white/10 text-white font-medium" : "text-white/70 hover:bg-white/5 hover:text-white"}`}
               style={{ background: activeTab === "msgs" ? "rgba(255,255,255,0.12)" : "transparent", color: "#fff", border: "none", cursor: "pointer", font: "inherit" }}
             >
               <i className="fas fa-envelope w-5 text-center"></i> Mensagens 
-              <span className="unread" style={{ marginLeft: "auto" }}>1</span>
+              {messages.filter(m => m.status === "Nova").length > 0 && (
+                <span className="unread" style={{ marginLeft: "auto" }}>
+                  {messages.filter(m => m.status === "Nova").length}
+                </span>
+              )}
             </button>
             <Link 
               to="/chat" 
@@ -295,7 +389,7 @@ export function DashboardVitima() {
                       <i className="fas fa-gavel"></i>
                     </div>
                     <span>Protocolo</span>
-                    <strong>#JA-2025-4821</strong>
+                    <strong>{protocolo}</strong>
                     <small>Aberto em 15/05/2025</small>
                   </div>
                   <div className="dash-card">
@@ -312,7 +406,7 @@ export function DashboardVitima() {
                     </div>
                     <span>Status Chat</span>
                     <strong>{lawyerAccepted ? "Advogado Conectado" : "Aguardando Aceite"}</strong>
-                    <small>{lawyerAccepted ? "Dra. Carla Mendes" : "Buscando profissional"}</small>
+                    <small>{lawyerAccepted ? assignedLawyerName : "Buscando profissional"}</small>
                   </div>
                 </div>
               )}
@@ -334,7 +428,7 @@ export function DashboardVitima() {
                   <span>
                     <strong>Sua triagem foi concluída com sucesso.</strong> 
                     {lawyerAccepted ? (
-                      <span> A Dra. Carla Mendes aceitou seu caso! Vá na aba de <strong>Triagem</strong> para iniciar a conversa.</span>
+                      <span> A {assignedLawyerName} aceitou seu caso! Vá na aba de <strong>Triagem</strong> para iniciar a conversa.</span>
                     ) : (
                       <span> Aguardando a conexão com um advogado voluntário. Veja as sugestões de segurança na aba de <strong>Triagem</strong>.</span>
                     )}
@@ -562,36 +656,28 @@ export function DashboardVitima() {
                     <h3 style={{ fontSize: "18px", color: "var(--wine)", marginBottom: "8px", fontFamily: "Playfair Display, serif" }}>Status de Atendimento Jurídico</h3>
                     
                     {!lawyerAccepted ? (
-                      <div>
-                        <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "14px", background: "var(--warm)", borderRadius: "8px", marginBottom: "20px" }}>
-                          <i className="fas fa-spinner fa-spin" style={{ color: "var(--rose)", fontSize: "18px" }}></i>
-                          <span style={{ fontSize: "13.5px", color: "var(--slate)", fontWeight: "bold" }}>
-                            Buscando advogadas voluntárias disponíveis para aceitar o chamado...
-                          </span>
-                        </div>
-                        
-                        <p style={{ fontSize: "13px", color: "var(--mid)", marginBottom: "20px" }}>
-                          Enquanto nossa rede analisa sua triagem, avalie as sugestões de segurança acima. Você pode acelerar o teste desta demonstração usando o botão de simulação abaixo.
-                        </p>
-
-                        <button 
-                          onClick={handleSimulateAccept}
-                          className="btn" 
-                          style={{ width: "100%", justifyContent: "center", background: "var(--rose)", color: "#fff", border: "none", cursor: "pointer", fontSize: "14px", padding: "10px 16px" }}
-                        >
-                          <i className="fas fa-user-check"></i> Simular Advogado Aceitar Caso
-                        </button>
+                      <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "14px", background: "var(--warm)", borderRadius: "8px" }}>
+                        <i className="fas fa-spinner fa-spin" style={{ color: "var(--rose)", fontSize: "18px" }}></i>
+                        <span style={{ fontSize: "13.5px", color: "var(--slate)", fontWeight: "bold" }}>
+                          Buscando advogadas voluntárias disponíveis para aceitar o chamado...
+                        </span>
                       </div>
                     ) : (
                       <div>
                         <div style={{ display: "flex", gap: "20px", alignItems: "center", flexWrap: "wrap", marginBottom: "20px" }}>
-                          <div style={{ width: "64px", height: "64px", borderRadius: "50%", background: "var(--wine)", color: "#fff", fontSize: "24px", fontWeight: "bold", display: "flex", alignItems: "center", justifyContent: "center" }}>CM</div>
+                          <div style={{ width: "64px", height: "64px", borderRadius: "50%", background: "var(--wine)", color: "#fff", fontSize: "24px", fontWeight: "bold", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            {assignedLawyerName.split(" ").filter((w: string) => {
+                              const lower = w.toLowerCase().replace(/[^a-z]/g, "");
+                              return lower !== "dr" && lower !== "dra" && lower !== "dr(a)";
+                            }).map((w: string) => w[0]).join("").substring(0, 2).toUpperCase() || "ADV"}
+                          </div>
                           <div>
-                            <h4 style={{ fontSize: "17px", color: "var(--wine)" }}>Dra. Carla Mendes (Aceitou seu caso)</h4>
-                            <span style={{ fontSize: "13px", color: "var(--mid)" }}>OAB/SP 187.432 · Especialista em Violência Doméstica</span>
+                            <h4 style={{ fontSize: "17px", color: "var(--wine)" }}>{assignedLawyerName} (Aceitou seu caso)</h4>
+                            <span style={{ fontSize: "13px", color: "var(--mid)" }}>OAB {assignedLawyerOab}</span>
                             <div style={{ display: "flex", gap: "8px", marginTop: "6px" }}>
-                              <span className="tag tag-wine">Violência Doméstica</span>
-                              <span className="tag tag-green">Medida Protetiva</span>
+                              {assignedLawyerSpecialties.map(spec => (
+                                <span key={spec} className="tag tag-wine">{spec}</span>
+                              ))}
                             </div>
                           </div>
                         </div>
@@ -611,56 +697,7 @@ export function DashboardVitima() {
             </div>
           )}
 
-          {/* STATUS TAB */}
-          {activeTab === "status" && (
-            <div id="dash-status" className="dash-tab active">
-              <div className="dash-header">
-                <h2>Status do Caso</h2>
-                <span className="badge badge-wine">Em andamento</span>
-              </div>
-              <div style={{ background: "var(--white)", border: "1px solid var(--border)", borderRadius: "var(--r2)", padding: "28px", boxShadow: "var(--shadow)" }}>
-                <div className="status-bar" style={{ marginBottom: "28px" }}>
-                  <div className="status-step done"><div className="status-dot"><i className="fas fa-check"></i></div><p>BO Registrado</p></div>
-                  <div className="status-step done"><div className="status-dot"><i className="fas fa-check"></i></div><p>Caso aberto</p></div>
-                  <div className="status-step done"><div className="status-dot"><i className="fas fa-check"></i></div><p>Advogada atribuída</p></div>
-                  <div className="status-step active"><div className="status-dot"><i className="fas fa-gavel"></i></div><p>Medida protetiva</p></div>
-                  <div className="status-step"><div className="status-dot">5</div><p>Audiência</p></div>
-                  <div className="status-step"><div className="status-dot">6</div><p>Encerramento</p></div>
-                </div>
-                <h4 style={{ color: "var(--wine)", marginBottom: "14px" }}>Linha do tempo</h4>
-                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                  <div style={{ display: "flex", gap: "14px", alignItems: "flex-start" }}>
-                    <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "var(--green)", marginTop: "5px", flexShrink: 0 }}></div>
-                    <div>
-                      <strong style={{ fontSize: "13.5px" }}>15/05/2025 — Boletim de Ocorrência registrado</strong>
-                      <p style={{ fontSize: "13px", color: "var(--mid)" }}>Delegacia da Mulher de São Paulo — protocolo #2025-04821</p>
-                    </div>
-                  </div>
-                  <div style={{ display: "flex", gap: "14px", alignItems: "flex-start" }}>
-                    <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "var(--green)", marginTop: "5px", flexShrink: 0 }}></div>
-                    <div>
-                      <strong style={{ fontSize: "13.5px" }}>16/05/2025 — Caso aberto na plataforma</strong>
-                      <p style={{ fontSize: "13px", color: "var(--mid)" }}>Dra. Carla Mendes atribuída ao caso</p>
-                    </div>
-                  </div>
-                  <div style={{ display: "flex", gap: "14px", alignItems: "flex-start" }}>
-                    <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "var(--green)", marginTop: "5px", flexShrink: 0 }}></div>
-                    <div>
-                      <strong style={{ fontSize: "13.5px" }}>18/05/2025 — Medida protetiva deferida</strong>
-                      <p style={{ fontSize: "13px", color: "var(--mid)" }}>Juíza determinou afastamento de 300m e proibição de contato</p>
-                    </div>
-                  </div>
-                  <div style={{ display: "flex", gap: "14px", alignItems: "flex-start" }}>
-                    <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "var(--wine)", marginTop: "5px", flexShrink: 0 }}></div>
-                    <div>
-                      <strong style={{ fontSize: "13.5px", color: "var(--wine)" }}>28/05/2025 — Audiência judicial agendada (próxima etapa)</strong>
-                      <p style={{ fontSize: "13px", color: "var(--mid)" }}>Vara de Violência Doméstica — Fórum Central de SP, 14h</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+
 
           {/* MESSAGES TAB */}
           {activeTab === "msgs" && (

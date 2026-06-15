@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { mensagemService } from "../../services/mensagemService";
+import { casoService } from "../../services/casoService";
 
 interface Contact {
   id: number;
@@ -45,13 +46,47 @@ export function ChatSeguro() {
 
   const [inputVal, setInputVal] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // State to hold the active case details from the backend
+  const [activeCase, setActiveCase] = useState<any>(null);
 
-  // Load contacts based on Triage connection state
+  // Fetch active case details on mount if present
+  useEffect(() => {
+    const activeCaseId = localStorage.getItem("active_case_id");
+    const isConnected = localStorage.getItem("chat_carlamendes") === "true";
+    if (activeCaseId && isConnected) {
+      casoService.buscarPorId(activeCaseId)
+        .then(res => {
+          setActiveCase(res.data);
+        })
+        .catch(err => {
+          console.warn("Erro ao buscar detalhes do caso no chat:", err);
+        });
+    }
+  }, []);
+
+  // Load contacts and poll messages
   useEffect(() => {
     const isConnected = localStorage.getItem("chat_carlamendes") === "true";
     const isAdvogado = userRole === "advogado";
     const activeCaseId = localStorage.getItem("active_case_id");
     
+    let dispName = isAdvogado ? "Maria Oliveira" : "Dra. Carla Mendes";
+    let dispAvatar = isAdvogado ? "M" : "CM";
+
+    if (isConnected && activeCase) {
+      if (isAdvogado) {
+        dispName = activeCase.vitima ? activeCase.vitima.nomeAnonimo : "Vítima Anônima";
+        dispAvatar = dispName.charAt(0).toUpperCase();
+      } else {
+        dispName = activeCase.advogado ? activeCase.advogado.nome : "Advogada Voluntária";
+        dispAvatar = dispName.split(" ").filter((w: string) => {
+          const lower = w.toLowerCase().replace(/[^a-z]/g, "");
+          return lower !== "dr" && lower !== "dra" && lower !== "dr(a)";
+        }).map((w: string) => w[0]).join("").substring(0, 2).toUpperCase() || "ADV";
+      }
+    }
+
     const initialContacts: Contact[] = [
       {
         id: 2,
@@ -68,38 +103,40 @@ export function ChatSeguro() {
     if (isConnected) {
       initialContacts.unshift({
         id: 1,
-        name: isAdvogado ? "Maria Oliveira" : "Dra. Carla Mendes",
-        avatar: isAdvogado ? "M" : "CM",
+        name: dispName,
+        avatar: dispAvatar,
         lastMessage: isAdvogado ? "O primeiro passo é providenciarmos..." : "Olá, Maria. Analisei o resultado da...",
         time: "10:23",
         unreadCount: isAdvogado ? undefined : 1,
         isOnline: true,
         avatarColor: isAdvogado ? "var(--rose)" : "var(--wine)"
       });
-      setActiveContactId(1); // Auto select Carla/Maria if matched
+      setActiveContactId(1); // Auto select if matched
 
-      // Load mock messages for fallback
-      setChatMessages(prev => ({
-        ...prev,
-        1: [
-          {
-            id: 1,
-            sender: isAdvogado ? "user" : "other", // For lawyer, lawyer is "user" (sender)
-            avatar: "CM",
-            avatarColor: "var(--wine)",
-            content: "Olá, Maria. Analisei o resultado da sua triagem e os fatores de risco apontados. Quero que saiba que você está segura aqui. Vamos trabalhar juntas no seu caso.",
-            time: "10:05"
-          },
-          {
-            id: 2,
-            sender: isAdvogado ? "user" : "other",
-            avatar: "CM",
-            avatarColor: "var(--wine)",
-            content: "O primeiro passo é providenciarmos o pedido da sua Medida Protetiva de Urgência. Se você puder, tenha em mãos o seu Comprovante de Residência e o Boletim de Ocorrência (se já houver registrado) para que possamos anexar no processo judicial.",
-            time: "10:06"
-          }
-        ]
-      }));
+      // Load mock messages for fallback ONLY if there is no backend case active
+      if (!activeCaseId) {
+        setChatMessages(prev => ({
+          ...prev,
+          1: [
+            {
+              id: 1,
+              sender: isAdvogado ? "user" : "other",
+              avatar: "CM",
+              avatarColor: "var(--wine)",
+              content: "Olá, Maria. Analisei o resultado da sua triagem e os fatores de risco apontados. Quero que saiba que você está segura aqui. Vamos trabalhar juntas no seu caso.",
+              time: "10:05"
+            },
+            {
+              id: 2,
+              sender: isAdvogado ? "user" : "other",
+              avatar: "CM",
+              avatarColor: "var(--wine)",
+              content: "O primeiro passo é providenciarmos o pedido da sua Medida Protetiva de Urgência. Se você puder, tenha em mãos o seu Comprovante de Residência e o Boletim de Ocorrência (se já houver registrado) para que possamos anexar no processo judicial.",
+              time: "10:06"
+            }
+          ]
+        }));
+      }
     } else {
       setActiveContactId(2);
     }
@@ -115,10 +152,26 @@ export function ChatSeguro() {
               ? msg.remetentePerfil === "ADVOGADO_VOLUNTARIO" 
               : msg.remetentePerfil === "VITIMA";
             
+            let avatarChar = "CM";
+            if (msg.remetentePerfil === "VITIMA") {
+              avatarChar = activeCase && activeCase.vitima ? activeCase.vitima.nomeAnonimo.charAt(0).toUpperCase() : "V";
+            } else if (msg.remetentePerfil === "ADVOGADO_VOLUNTARIO") {
+              if (activeCase && activeCase.advogado) {
+                avatarChar = activeCase.advogado.nome.split(" ").filter((w: string) => {
+                  const lower = w.toLowerCase().replace(/[^a-z]/g, "");
+                  return lower !== "dr" && lower !== "dra" && lower !== "dr(a)";
+                }).map((w: string) => w[0]).join("").substring(0, 2).toUpperCase() || "ADV";
+              } else {
+                avatarChar = "ADV";
+              }
+            } else if (msg.remetentePerfil === "ADMIN") {
+              avatarChar = "shield";
+            }
+
             return {
               id: msg.id,
               sender: isSentByMe ? ("user" as const) : ("other" as const),
-              avatar: msg.remetentePerfil === "VITIMA" ? "M" : (msg.remetentePerfil === "ADMIN" ? "shield" : "CM"),
+              avatar: avatarChar,
               avatarColor: msg.remetentePerfil === "VITIMA" ? "var(--rose)" : (msg.remetentePerfil === "ADMIN" ? "var(--blue)" : "var(--wine)"),
               content: msg.conteudo,
               time: new Date(msg.dataEnvio).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
@@ -144,7 +197,7 @@ export function ChatSeguro() {
       const interval = setInterval(fetchMessages, 4000);
       return () => clearInterval(interval);
     }
-  }, [userRole]);
+  }, [userRole, activeCase]);
 
   const activeContact = contacts.find(c => c.id === activeContactId);
   const messagesList = activeContactId && chatMessages[activeContactId] ? chatMessages[activeContactId] : [];
@@ -178,10 +231,26 @@ export function ChatSeguro() {
             ? msg.remetentePerfil === "ADVOGADO_VOLUNTARIO" 
             : msg.remetentePerfil === "VITIMA";
           
+          let avatarChar = "CM";
+          if (msg.remetentePerfil === "VITIMA") {
+            avatarChar = activeCase && activeCase.vitima ? activeCase.vitima.nomeAnonimo.charAt(0).toUpperCase() : "V";
+          } else if (msg.remetentePerfil === "ADVOGADO_VOLUNTARIO") {
+            if (activeCase && activeCase.advogado) {
+              avatarChar = activeCase.advogado.nome.split(" ").filter((w: string) => {
+                const lower = w.toLowerCase().replace(/[^a-z]/g, "");
+                return lower !== "dr" && lower !== "dra" && lower !== "dr(a)";
+              }).map((w: string) => w[0]).join("").substring(0, 2).toUpperCase() || "ADV";
+            } else {
+              avatarChar = "ADV";
+            }
+          } else if (msg.remetentePerfil === "ADMIN") {
+            avatarChar = "shield";
+          }
+
           return {
             id: msg.id,
             sender: isSentByMe ? ("user" as const) : ("other" as const),
-            avatar: msg.remetentePerfil === "VITIMA" ? "M" : (msg.remetentePerfil === "ADMIN" ? "shield" : "CM"),
+            avatar: avatarChar,
             avatarColor: msg.remetentePerfil === "VITIMA" ? "var(--rose)" : (msg.remetentePerfil === "ADMIN" ? "var(--blue)" : "var(--wine)"),
             content: msg.conteudo,
             time: new Date(msg.dataEnvio).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
@@ -221,6 +290,25 @@ export function ChatSeguro() {
     setContacts(prev => prev.map(c => c.id === activeContactId ? { ...c, lastMessage: trimmed, time: "Agora" } : c));
     setInputVal("");
   };
+
+  const handleDeleteChat = () => {
+    const confirmMessage = userRole === "advogado" 
+      ? "Deseja realmente ocultar esta conversa? Você poderá reabri-la a qualquer momento pelo seu painel."
+      : "Deseja realmente ocultar esta conversa? Você poderá contatar o advogado voluntário novamente a qualquer momento através do seu painel.";
+      
+    if (!confirm(confirmMessage)) return;
+
+    // We do NOT call encerrarCaso and do NOT remove active_case_id/triage_completed.
+    // We only remove the visibility flag so the chat disappears from the active chat list.
+    localStorage.removeItem("chat_carlamendes");
+
+    // Clean up local states for the active screen
+    setContacts(prev => prev.filter(c => c.id !== 1));
+    setActiveContactId(2);
+
+    alert("Conversa oculta com sucesso. Você ainda pode contatar o profissional através do seu painel.");
+  };
+
 
   return (
     <div className="page active" id="page-chat" style={{ paddingTop: "64px", height: "100vh" }}>
@@ -281,7 +369,17 @@ export function ChatSeguro() {
                     </span>
                   </div>
                   <div className="chat-topbar-actions">
-                    <button className="icon-btn" title="Informações" onClick={() => alert("Informações da advogada voluntária")}><i className="fas fa-info-circle"></i></button>
+                    <button className="icon-btn" title="Informações" onClick={() => alert(userRole === "advogado" ? "Informações da Vítima" : "Informações da advogada voluntária")}><i className="fas fa-info-circle"></i></button>
+                    {activeContact.id === 1 && (
+                      <button 
+                        className="icon-btn" 
+                        title="Excluir Chat" 
+                        onClick={handleDeleteChat} 
+                        style={{ color: "#d9534f", marginLeft: "8px" }}
+                      >
+                        <i className="fas fa-trash-alt"></i>
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -291,7 +389,7 @@ export function ChatSeguro() {
 
                 <div className="chat-messages">
                   {messagesList.map(msg => {
-                    const isSent = userRole === "advogado" ? msg.avatar === "CM" : msg.avatar === "M";
+                    const isSent = msg.sender === "user";
                     return (
                       <div key={msg.id} className={`chat-msg ${isSent ? "sent" : "recv"}`}>
                         <div className="msg-avt" style={{ background: msg.avatarColor, color: "#fff" }}>

@@ -15,12 +15,23 @@ interface Case {
   status: "Pendente" | "Em Atendimento";
 }
 
+const mapViolenceType = (type: string) => {
+  switch (type) {
+    case "FISICA": return "Violência Física";
+    case "PSICOLOGICA": return "Violência Psicológica";
+    case "SEXUAL": return "Violência Sexual";
+    case "PATRIMONIAL": return "Violência Patrimonial";
+    case "MORAL": return "Violência Moral";
+    default: return type;
+  }
+};
+
 export function DashboardAdvogado() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<"pending" | "my_cases">("pending");
-  const [lawyerName, setLawyerName] = useState("Dra. Carla Mendes");
-  const [lawyerOab, setLawyerOab] = useState("187.432");
-  const [lawyerUf, setLawyerUf] = useState("SP");
+  const [lawyerName, setLawyerName] = useState("Carregando...");
+  const [lawyerOab, setLawyerOab] = useState("");
+  const [lawyerUf, setLawyerUf] = useState("");
   const [lawyerId, setLawyerId] = useState("");
   const [availability, setAvailability] = useState<Disponibilidade>("ONLINE");
   
@@ -29,8 +40,9 @@ export function DashboardAdvogado() {
   const [triageUrgency, setTriageUrgency] = useState<"Alta" | "Moderada">("Moderada");
   const [isChatAccepted, setIsChatAccepted] = useState(false);
 
-  // Backend case state
-  const [backendCase, setBackendCase] = useState<any>(null);
+  // States for pending cases and lawyer cases
+  const [pendingCases, setPendingCases] = useState<Case[]>([]);
+  const [myCases, setMyCases] = useState<Case[]>([]);
 
   useEffect(() => {
     // Read current simulation state
@@ -56,6 +68,18 @@ export function DashboardAdvogado() {
 
         // Fetch lawyer cases
         const casesRes = await advogadoService.listarCasos();
+        const activeCasesFormatted = casesRes.data.map((c: any) => ({
+          id: c.id,
+          victimName: c.vitima ? c.vitima.nomeAnonimo : "Vítima Anônima",
+          age: "Idade não informada",
+          city: c.vitima && c.vitima.estadoResidencia ? `Localidade - ${c.vitima.estadoResidencia}` : "Não Informado",
+          urgency: c.tipoViolencia === "FISICA" || c.tipoViolencia === "SEXUAL" ? "Alta" : "Moderada",
+          violenceTypes: [mapViolenceType(c.tipoViolencia)],
+          date: c.timestampAbertura ? new Date(c.timestampAbertura).toLocaleDateString("pt-BR") : "Hoje",
+          status: "Em Atendimento" as const
+        }));
+        setMyCases(activeCasesFormatted);
+
         const active = casesRes.data.find(c => c.status === "EM_ATENDIMENTO");
         if (active) {
           setIsChatAccepted(true);
@@ -63,10 +87,26 @@ export function DashboardAdvogado() {
           localStorage.setItem("chat_carlamendes", "true");
           localStorage.setItem("active_case_id", active.id);
         }
+
+        // Fetch pending cases
+        const pendingRes = await casoService.listarCasosPendentes();
+        const pendingCasesFormatted = pendingRes.data.map((c: any) => ({
+          id: c.id,
+          victimName: c.vitima ? c.vitima.nomeAnonimo : "Vítima Anônima",
+          age: "Idade não informada",
+          city: c.vitima && c.vitima.estadoResidencia ? `Localidade - ${c.vitima.estadoResidencia}` : "Não Informado",
+          urgency: c.tipoViolencia === "FISICA" || c.tipoViolencia === "SEXUAL" ? "Alta" : "Moderada",
+          violenceTypes: [mapViolenceType(c.tipoViolencia)],
+          date: c.timestampAbertura ? new Date(c.timestampAbertura).toLocaleDateString("pt-BR") : "Hoje",
+          status: "Pendente" as const
+        }));
+
+        setPendingCases(pendingCasesFormatted);
+
       } catch (error) {
         console.warn("Backend offline ou sem sessão ativa. Carregando simulação local...", error);
         
-        // Load active lawyer session details from localStorage fallback
+        // Fallback simulation
         const email = localStorage.getItem("logged_lawyer_email");
         const lawyersData = localStorage.getItem("juris_lawyers");
         if (email && lawyersData) {
@@ -78,22 +118,34 @@ export function DashboardAdvogado() {
             setLawyerUf(found.uf);
           }
         }
+
+        const simulatedPending: Case[] = [];
+        const simulatedMyCases: Case[] = [];
+
+        if (triage) {
+          const triageCase: Case = {
+            id: "maria-oliveira",
+            victimName: "Maria Oliveira",
+            age: "34 anos",
+            city: "São Paulo - SP",
+            urgency: urgency,
+            violenceTypes: ["Violência Psicológica", "Ameaças e Perseguição"],
+            date: "Hoje",
+            status: accepted ? "Em Atendimento" : "Pendente"
+          };
+          if (accepted) {
+            simulatedMyCases.push(triageCase);
+          } else {
+            simulatedPending.push(triageCase);
+          }
+        }
+
+        setPendingCases(simulatedPending);
+        setMyCases(simulatedMyCases);
       }
     }
 
     loadLawyerData();
-
-    // Load active case details from backend if present
-    const activeCaseId = localStorage.getItem("active_case_id");
-    if (activeCaseId) {
-      casoService.buscarPorId(activeCaseId)
-        .then(res => {
-          setBackendCase(res.data);
-        })
-        .catch(err => {
-          console.warn("Não foi possível buscar os detalhes do caso no backend:", err);
-        });
-    }
   }, []);
 
   const handleAvailabilityChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -108,9 +160,32 @@ export function DashboardAdvogado() {
   };
 
   const handleAcceptCase = async (caseId: string) => {
+    // Check if the advocate already has 5 active cases (limite de 5 casos)
+    if (myCases.length >= 5) {
+      alert("Você atingiu o limite máximo de 5 casos ativos simultâneos.");
+      return;
+    }
+
     if (caseId && lawyerId && caseId !== "maria-oliveira") {
       try {
-        await casoService.atribuirAdvogado(caseId, lawyerId);
+        await casoService.aceitarCaso(caseId);
+        
+        // Remove from pending cases and sync list
+        setPendingCases(prev => prev.filter(c => c.id !== caseId));
+        
+        const casesRes = await advogadoService.listarCasos();
+        const activeCasesFormatted = casesRes.data.map((c: any) => ({
+          id: c.id,
+          victimName: c.vitima ? c.vitima.nomeAnonimo : "Vítima Anônima",
+          age: "Idade não informada",
+          city: c.vitima && c.vitima.estadoResidencia ? `Localidade - ${c.vitima.estadoResidencia}` : "Não Informado",
+          urgency: c.tipoViolencia === "FISICA" || c.tipoViolencia === "SEXUAL" ? "Alta" : "Moderada",
+          violenceTypes: [mapViolenceType(c.tipoViolencia)],
+          date: c.timestampAbertura ? new Date(c.timestampAbertura).toLocaleDateString("pt-BR") : "Hoje",
+          status: "Em Atendimento" as const
+        }));
+        setMyCases(activeCasesFormatted);
+
         localStorage.setItem("chat_accepted", "true");
         localStorage.setItem("chat_carlamendes", "true");
         localStorage.setItem("active_case_id", caseId);
@@ -118,16 +193,26 @@ export function DashboardAdvogado() {
         alert("Você aceitou o caso com sucesso! Um canal de comunicação seguro foi aberto.");
         setActiveTab("my_cases");
         return;
-      } catch (err) {
-        console.warn("Erro ao aceitar o caso via API. Usando fallback simulado...", err);
+      } catch (err: any) {
+        console.error("Erro ao aceitar o caso via API:", err);
+        const errMsg = err.response?.data?.mensagem || "Erro ao aceitar o caso.";
+        alert(errMsg);
+        return;
       }
     }
 
-    if (caseId === "maria-oliveira" || caseId === localStorage.getItem("active_case_id")) {
+    if (caseId === "maria-oliveira") {
       localStorage.setItem("chat_accepted", "true");
       localStorage.setItem("chat_carlamendes", "true"); // Connects chat on victim side
       setIsChatAccepted(true);
-      alert("Você aceitou o caso de Maria Oliveira com sucesso! Um canal de comunicação seguro foi aberto.");
+      
+      const foundCase = pendingCases.find(c => c.id === caseId);
+      if (foundCase) {
+        const updatedCase = { ...foundCase, status: "Em Atendimento" as const };
+        setPendingCases(prev => prev.filter(c => c.id !== caseId));
+        setMyCases(prev => [...prev, updatedCase]);
+      }
+      alert("Você aceitou o caso simulado com sucesso! Um canal de comunicação seguro foi aberto.");
       setActiveTab("my_cases");
     } else {
       alert("Este caso simulado já foi aceito por outro advogado voluntário.");
@@ -148,69 +233,7 @@ export function DashboardAdvogado() {
     }
   };
 
-  // Mock pending cases in the system
-  const pendingCases: Case[] = [];
-  
-  if (backendCase) {
-    const isAssignedToMe = backendCase.advogado && backendCase.advogado.id === lawyerId;
-    const isAwaiting = backendCase.status === "AGUARDANDO";
-
-    if (isAwaiting || isAssignedToMe) {
-      pendingCases.push({
-        id: backendCase.id,
-        victimName: backendCase.vitima ? backendCase.vitima.nomeAnonimo : "Vítima Anônima",
-        age: "34 anos",
-        city: (backendCase.vitima && backendCase.vitima.estadoResidencia) 
-          ? `Localidade - ${backendCase.vitima.estadoResidencia}` 
-          : "São Paulo - SP",
-        urgency: backendCase.tipoViolencia === "FISICA" || backendCase.tipoViolencia === "SEXUAL" ? "Alta" : "Moderada",
-        violenceTypes: [backendCase.tipoViolencia],
-        date: "Hoje",
-        status: isAssignedToMe ? "Em Atendimento" : "Pendente"
-      });
-    }
-  }
-
-  // If the victim did the triage locally (offline fallback)
-  if (hasTriageCompleted && !pendingCases.some(c => c.id === "maria-oliveira" || c.id === localStorage.getItem("active_case_id"))) {
-    pendingCases.push({
-      id: "maria-oliveira",
-      victimName: "Maria Oliveira",
-      age: "34 anos",
-      city: "São Paulo - SP",
-      urgency: triageUrgency,
-      violenceTypes: ["Violência Psicológica", "Ameaças e Perseguição"],
-      date: "Hoje",
-      status: isChatAccepted ? "Em Atendimento" : "Pendente"
-    });
-  }
-
-  // Add a few more mock cases to populate the dashboard
-  pendingCases.push(
-    {
-      id: "case-2",
-      victimName: "Patricia S.",
-      age: "28 anos",
-      city: "Belo Horizonte - MG",
-      urgency: "Alta",
-      violenceTypes: ["Violência Física", "Violência Psicológica"],
-      date: "Ontem",
-      status: "Pendente"
-    },
-    {
-      id: "case-3",
-      victimName: "Ana Clara M.",
-      age: "41 anos",
-      city: "Rio de Janeiro - RJ",
-      urgency: "Moderada",
-      violenceTypes: ["Violência Patrimonial", "Violência Psicológica"],
-      date: "14/06/2026",
-      status: "Pendente"
-    }
-  );
-
-  const displayedPending = pendingCases.filter(c => c.status === "Pendente");
-  const myCases = pendingCases.filter(c => c.status === "Em Atendimento" || (c.id === "maria-oliveira" && isChatAccepted));
+  const displayedPending = pendingCases;
 
   return (
     <div className="page active" id="page-dashboard-advogado" style={{ paddingTop: "64px", minHeight: "100vh" }}>

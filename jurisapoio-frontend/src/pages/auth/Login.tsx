@@ -32,9 +32,8 @@ export function Login() {
   const [advEspecialidade, setAdvEspecialidade] = useState("Violência Doméstica");
   const [advSenha, setAdvSenha] = useState("");
   
-  // OAB Validation simulation states
+  // Form submitting/loading states
   const [isVerifyingOab, setIsVerifyingOab] = useState(false);
-  const [oabVerifiedStatus, setOabVerifiedStatus] = useState<"none" | "validating" | "success" | "error">("none");
 
   async function handleLoginSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -180,77 +179,67 @@ export function Login() {
       return;
     }
 
-    // Trigger simulated OAB API verification
-    setOabVerifiedStatus("validating");
     setIsVerifyingOab(true);
 
-    setTimeout(() => {
-      // OAB is verified
-      setOabVerifiedStatus("success");
+    try {
+      // Call backend API
+      await authService.cadastrarAdvogado({
+        email: advEmail,
+        senha: advSenha,
+        nome: advNome,
+        numeroOAB: `${advOab}/${advUf}`,
+        especialidades: advEspecialidade
+      });
+
+      alert("Cadastro realizado com sucesso! Sua solicitação foi enviada ao administrador do sistema.");
+      setEmail(advEmail);
+      setIsRegistering(false);
       setIsVerifyingOab(false);
+    } catch (error: any) {
+      if (error && error.response) {
+        const backendMessage = error.response.data?.mensagem || "Erro ao cadastrar advogado no servidor.";
+        alert(`Erro no cadastro: ${backendMessage}`);
+        setIsVerifyingOab(false);
+        return;
+      }
+      console.warn("Erro no cadastro de advogado pelo backend. Usando fallback simulado...", error);
+      
+      const existingLawyersStr = localStorage.getItem("juris_lawyers");
+      const existingLawyers = existingLawyersStr ? JSON.parse(existingLawyersStr) : [];
 
-      setTimeout(async () => {
-        try {
-          // Call backend API
-          await authService.cadastrarAdvogado({
-            email: advEmail,
-            senha: advSenha,
-            nome: advNome,
-            numeroOAB: `${advOab}/${advUf}`,
-            especialidades: advEspecialidade
-          });
+      if (existingLawyers.some((l: any) => l.email === advEmail)) {
+        alert("Este e-mail profissional já está cadastrado!");
+        setIsVerifyingOab(false);
+        return;
+      }
 
-          alert(`Cadastro realizado com sucesso!\nA OAB ${advOab}/${advUf} foi validada no CNA.\n\nIMPORTANTE: Sua conta está aguardando homologação do administrador.`);
-          setEmail(advEmail);
-          setIsRegistering(false);
-          setOabVerifiedStatus("none");
-        } catch (error: any) {
-          if (error && error.response) {
-            const backendMessage = error.response.data?.mensagem || "Erro ao cadastrar advogado no servidor.";
-            alert(`Erro no cadastro: ${backendMessage}`);
-            setOabVerifiedStatus("none");
-            return;
-          }
-          console.warn("Erro no cadastro de advogado pelo backend. Usando fallback simulado...", error);
-          
-          const existingLawyersStr = localStorage.getItem("juris_lawyers");
-          const existingLawyers = existingLawyersStr ? JSON.parse(existingLawyersStr) : [];
+      const newLawyer = {
+        id: existingLawyers.length + 1,
+        name: advNome,
+        email: advEmail,
+        senha: advSenha,
+        oab: advOab,
+        uf: advUf,
+        specialties: [advEspecialidade],
+        seal: "Aguardando Verificação",
+        experience: "Iniciante",
+        cases: "0",
+        rating: "⭐ 5.0",
+        availability: "48h",
+        color: "var(--wine)",
+        gradient: "linear-gradient(135deg, var(--wine3), var(--wine))",
+        status: "pending"
+      };
 
-          if (existingLawyers.some((l: any) => l.email === advEmail)) {
-            alert("Este e-mail profissional já está cadastrado!");
-            setOabVerifiedStatus("none");
-            return;
-          }
+      existingLawyers.push(newLawyer);
+      localStorage.setItem("juris_lawyers", JSON.stringify(existingLawyers));
 
-          const newLawyer = {
-            id: existingLawyers.length + 1,
-            name: advNome,
-            email: advEmail,
-            senha: advSenha,
-            oab: advOab,
-            uf: advUf,
-            specialties: [advEspecialidade],
-            seal: "Aguardando Verificação",
-            experience: "Iniciante",
-            cases: "0",
-            rating: "⭐ 5.0",
-            availability: "48h",
-            color: "var(--wine)",
-            gradient: "linear-gradient(135deg, var(--wine3), var(--wine))",
-            status: "pending"
-          };
-
-          existingLawyers.push(newLawyer);
-          localStorage.setItem("juris_lawyers", JSON.stringify(existingLawyers));
-
-          alert(`Cadastro realizado com sucesso!\nA OAB ${advOab}/${advUf} foi validada no CNA.\n\nIMPORTANTE: Sua conta está aguardando homologação do administrador.`);
-          
-          setEmail(advEmail);
-          setIsRegistering(false);
-          setOabVerifiedStatus("none");
-        }
-      }, 1500);
-    }, 2000);
+      alert("Cadastro realizado com sucesso! Sua solicitação foi enviada ao administrador do sistema.");
+      
+      setEmail(advEmail);
+      setIsRegistering(false);
+      setIsVerifyingOab(false);
+    }
   }
 
   // Helper local email state for lawyer register
@@ -454,23 +443,7 @@ export function Login() {
                   </div>
                 </div>
 
-                {/* OAB validation status indicator */}
-                <div style={{ marginBottom: "14px" }}>
-                  {oabVerifiedStatus === "validating" && (
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "12.5px", color: "var(--amber)", marginTop: "6px" }}>
-                      <i className="fas fa-spinner fa-spin"></i>
-                      <span>Consultando OAB no Cadastro Nacional dos Advogados (CNA)...</span>
-                    </div>
-                  )}
-                  {oabVerifiedStatus === "success" && (
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "12.5px", color: "var(--green)", marginTop: "6px", fontWeight: "bold" }}>
-                      <i className="fas fa-check-circle"></i>
-                      <span>✓ OAB Regular e Ativa | Subseção {advUf} | Profissional Verificado</span>
-                    </div>
-                  )}
-                </div>
-
-                <div className="mb-4">
+                 <div className="mb-4">
                   <label className="block text-xs font-semibold mb-1" style={{ color: "var(--slate)" }}>Especialidade Principal</label>
                   <select
                     value={advEspecialidade}
@@ -506,7 +479,7 @@ export function Login() {
                   style={{ backgroundColor: "var(--wine)", color: "#fff", border: "none", cursor: "pointer" }}
                   disabled={isVerifyingOab}
                 >
-                  {isVerifyingOab ? "Validando OAB..." : "Verificar OAB & Cadastrar"}
+                  {isVerifyingOab ? "Cadastrando..." : "Cadastrar"}
                 </button>
 
                 <p className="text-center text-sm mt-4" style={{ color: "var(--mid)" }}>
