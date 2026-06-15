@@ -26,9 +26,9 @@ export function Home() {
           </Link>
         </div>
         <div className="hero-stats">
-          <div className="hero-stat"><strong>4.800+</strong><span>casos atendidos</span></div>
-          <div className="hero-stat"><strong>320+</strong><span>advogados voluntários</span></div>
-          <div className="hero-stat"><strong>96%</strong><span>satisfação das usuárias</span></div>
+          <div className="hero-stat"><strong>50+</strong><span>casos atendidos</span></div>
+          <div className="hero-stat"><strong>15+</strong><span>advogados voluntários</span></div>
+          <div className="hero-stat"><strong>99%</strong><span>satisfação das usuárias</span></div>
           <div className="hero-stat"><strong>24h</strong><span>resposta média</span></div>
         </div>
       </div>

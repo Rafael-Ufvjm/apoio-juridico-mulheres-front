@@ -38,10 +38,10 @@ export function Sobre() {
           <div className="section-tag">Impacto social</div>
           <h2 className="section-title">Números que transformam vidas</h2>
           <div className="impact-numbers">
-            <div className="impact-num"><strong>4.800+</strong><span>casos atendidos</span></div>
-            <div className="impact-num"><strong>320+</strong><span>advogados voluntários</span></div>
+            <div className="impact-num"><strong>50+</strong><span>casos atendidos</span></div>
+            <div className="impact-num"><strong>15+</strong><span>advogados voluntários</span></div>
             <div className="impact-num"><strong>26</strong><span>estados alcançados</span></div>
-            <div className="impact-num"><strong>96%</strong><span>satisfação das usuárias</span></div>
+            <div className="impact-num"><strong>99%</strong><span>satisfação das usuárias</span></div>
             <div className="impact-num"><strong>72%</strong><span>medidas protetivas obtidas</span></div>
             <div className="impact-num"><strong>24h</strong><span>tempo médio de resposta</span></div>
           </div>
