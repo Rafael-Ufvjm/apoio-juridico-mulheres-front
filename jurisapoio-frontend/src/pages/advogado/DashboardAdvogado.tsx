@@ -35,11 +35,6 @@ export function DashboardAdvogado() {
   const [lawyerId, setLawyerId] = useState("");
   const [availability, setAvailability] = useState<Disponibilidade>("ONLINE");
   
-  // Real-time states reading from localStorage to sync with the victim simulation
-  const [hasTriageCompleted, setHasTriageCompleted] = useState(false);
-  const [triageUrgency, setTriageUrgency] = useState<"Alta" | "Moderada">("Moderada");
-  const [isChatAccepted, setIsChatAccepted] = useState(false);
-
   // States for pending cases and lawyer cases
   const [pendingCases, setPendingCases] = useState<Case[]>([]);
   const [myCases, setMyCases] = useState<Case[]>([]);
@@ -49,10 +44,6 @@ export function DashboardAdvogado() {
     const triage = localStorage.getItem("triage_completed") === "true";
     const urgency = (localStorage.getItem("triage_urgency") as "Alta" | "Moderada") || "Moderada";
     const accepted = localStorage.getItem("chat_accepted") === "true";
-
-    setHasTriageCompleted(triage);
-    setTriageUrgency(urgency);
-    setIsChatAccepted(accepted);
 
     async function loadLawyerData() {
       try {
@@ -75,7 +66,7 @@ export function DashboardAdvogado() {
             victimName: c.vitima ? c.vitima.nomeAnonimo : "Vítima Anônima",
             age: "Idade não informada",
             city: c.vitima && c.vitima.estadoResidencia ? `Localidade - ${c.vitima.estadoResidencia}` : "Não Informado",
-            urgency: c.tipoViolencia === "FISICA" || c.tipoViolencia === "SEXUAL" ? "Alta" : "Moderada",
+            urgency: (c.tipoViolencia === "FISICA" || c.tipoViolencia === "SEXUAL" ? "Alta" : "Moderada") as "Alta" | "Moderada",
             violenceTypes: [mapViolenceType(c.tipoViolencia)],
             date: c.timestampAbertura ? new Date(c.timestampAbertura).toLocaleDateString("pt-BR") : "Hoje",
             status: "Em Atendimento" as const
@@ -84,7 +75,6 @@ export function DashboardAdvogado() {
 
         const active = casesRes.data.find(c => c.status === "EM_ATENDIMENTO");
         if (active) {
-          setIsChatAccepted(true);
           localStorage.setItem("chat_accepted", "true");
           localStorage.setItem("chat_carlamendes", "true");
           localStorage.setItem("active_case_id", active.id);
@@ -183,7 +173,7 @@ export function DashboardAdvogado() {
             victimName: c.vitima ? c.vitima.nomeAnonimo : "Vítima Anônima",
             age: "Idade não informada",
             city: c.vitima && c.vitima.estadoResidencia ? `Localidade - ${c.vitima.estadoResidencia}` : "Não Informado",
-            urgency: c.tipoViolencia === "FISICA" || c.tipoViolencia === "SEXUAL" ? "Alta" : "Moderada",
+            urgency: (c.tipoViolencia === "FISICA" || c.tipoViolencia === "SEXUAL" ? "Alta" : "Moderada") as "Alta" | "Moderada",
             violenceTypes: [mapViolenceType(c.tipoViolencia)],
             date: c.timestampAbertura ? new Date(c.timestampAbertura).toLocaleDateString("pt-BR") : "Hoje",
             status: "Em Atendimento" as const
@@ -193,7 +183,6 @@ export function DashboardAdvogado() {
         localStorage.setItem("chat_accepted", "true");
         localStorage.setItem("chat_carlamendes", "true");
         localStorage.setItem("active_case_id", caseId);
-        setIsChatAccepted(true);
         alert("Você aceitou o caso com sucesso! Um canal de comunicação seguro foi aberto.");
         setActiveTab("my_cases");
         return;
@@ -208,7 +197,6 @@ export function DashboardAdvogado() {
     if (caseId === "maria-oliveira") {
       localStorage.setItem("chat_accepted", "true");
       localStorage.setItem("chat_carlamendes", "true"); // Connects chat on victim side
-      setIsChatAccepted(true);
       
       const foundCase = pendingCases.find(c => c.id === caseId);
       if (foundCase) {
@@ -242,7 +230,6 @@ export function DashboardAdvogado() {
       localStorage.removeItem("chat_carlamendes");
       localStorage.removeItem("active_case_id");
       localStorage.removeItem("triage_completed");
-      setIsChatAccepted(false);
       alert("Caso simulado encerrado com sucesso.");
       return;
     }
@@ -257,9 +244,8 @@ export function DashboardAdvogado() {
         localStorage.removeItem("chat_accepted");
         localStorage.removeItem("chat_carlamendes");
         localStorage.removeItem("active_case_id");
-        setIsChatAccepted(false);
       }
-      
+
       alert("Caso encerrado com sucesso. O histórico de mensagens foi apagado.");
     } catch (err: any) {
       console.error("Erro ao encerrar caso:", err);
@@ -275,8 +261,6 @@ export function DashboardAdvogado() {
       localStorage.removeItem("chat_accepted");
       localStorage.removeItem("chat_carlamendes");
       localStorage.removeItem("active_case_id");
-      setHasTriageCompleted(false);
-      setIsChatAccepted(false);
       alert("Simulação resetada!");
       window.location.reload();
     }
