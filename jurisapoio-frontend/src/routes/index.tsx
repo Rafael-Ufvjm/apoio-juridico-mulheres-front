@@ -9,7 +9,6 @@ import { Home } from "../pages/Home";
 import { Lawyers } from "../pages/Lawyers";
 import { Orientacao } from "../pages/Orientacao";
 import { Sobre } from "../pages/Sobre";
-import { Seguranca } from "../pages/Seguranca";
 import { Login } from "../pages/auth/Login";
 import { DashboardVitima } from "../pages/vitima/DashboardVitima";
 import { ChatSeguro } from "../pages/vitima/ChatSeguro";
@@ -30,7 +29,6 @@ export function AppRoutes() {
           <Route path="/lawyers" element={<Lawyers />} />
           <Route path="/orientacao" element={<Orientacao />} />
           <Route path="/sobre" element={<Sobre />} />
-          <Route path="/seguranca" element={<Seguranca />} />
           
           <Route
             path="/dashboard"

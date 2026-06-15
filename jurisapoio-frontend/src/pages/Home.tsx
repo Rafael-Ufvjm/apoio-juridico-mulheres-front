@@ -136,7 +136,6 @@ export function Home() {
             <div className="footer-col">
               <h4>Institucional</h4>
               <Link to="/sobre">Sobre o projeto</Link>
-              <Link to="/seguranca">Segurança</Link>
               <a href="#">Política de privacidade</a>
               <a href="#">Termos de uso</a>
             </div>
