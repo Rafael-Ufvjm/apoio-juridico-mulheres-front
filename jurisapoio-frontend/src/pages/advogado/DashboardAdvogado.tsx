@@ -68,16 +68,18 @@ export function DashboardAdvogado() {
 
         // Fetch lawyer cases
         const casesRes = await advogadoService.listarCasos();
-        const activeCasesFormatted = casesRes.data.map((c: any) => ({
-          id: c.id,
-          victimName: c.vitima ? c.vitima.nomeAnonimo : "Vítima Anônima",
-          age: "Idade não informada",
-          city: c.vitima && c.vitima.estadoResidencia ? `Localidade - ${c.vitima.estadoResidencia}` : "Não Informado",
-          urgency: c.tipoViolencia === "FISICA" || c.tipoViolencia === "SEXUAL" ? "Alta" : "Moderada",
-          violenceTypes: [mapViolenceType(c.tipoViolencia)],
-          date: c.timestampAbertura ? new Date(c.timestampAbertura).toLocaleDateString("pt-BR") : "Hoje",
-          status: "Em Atendimento" as const
-        }));
+        const activeCasesFormatted = casesRes.data
+          .filter((c: any) => c.status === "EM_ATENDIMENTO")
+          .map((c: any) => ({
+            id: c.id,
+            victimName: c.vitima ? c.vitima.nomeAnonimo : "Vítima Anônima",
+            age: "Idade não informada",
+            city: c.vitima && c.vitima.estadoResidencia ? `Localidade - ${c.vitima.estadoResidencia}` : "Não Informado",
+            urgency: c.tipoViolencia === "FISICA" || c.tipoViolencia === "SEXUAL" ? "Alta" : "Moderada",
+            violenceTypes: [mapViolenceType(c.tipoViolencia)],
+            date: c.timestampAbertura ? new Date(c.timestampAbertura).toLocaleDateString("pt-BR") : "Hoje",
+            status: "Em Atendimento" as const
+          }));
         setMyCases(activeCasesFormatted);
 
         const active = casesRes.data.find(c => c.status === "EM_ATENDIMENTO");
@@ -174,16 +176,18 @@ export function DashboardAdvogado() {
         setPendingCases(prev => prev.filter(c => c.id !== caseId));
         
         const casesRes = await advogadoService.listarCasos();
-        const activeCasesFormatted = casesRes.data.map((c: any) => ({
-          id: c.id,
-          victimName: c.vitima ? c.vitima.nomeAnonimo : "Vítima Anônima",
-          age: "Idade não informada",
-          city: c.vitima && c.vitima.estadoResidencia ? `Localidade - ${c.vitima.estadoResidencia}` : "Não Informado",
-          urgency: c.tipoViolencia === "FISICA" || c.tipoViolencia === "SEXUAL" ? "Alta" : "Moderada",
-          violenceTypes: [mapViolenceType(c.tipoViolencia)],
-          date: c.timestampAbertura ? new Date(c.timestampAbertura).toLocaleDateString("pt-BR") : "Hoje",
-          status: "Em Atendimento" as const
-        }));
+        const activeCasesFormatted = casesRes.data
+          .filter((c: any) => c.status === "EM_ATENDIMENTO")
+          .map((c: any) => ({
+            id: c.id,
+            victimName: c.vitima ? c.vitima.nomeAnonimo : "Vítima Anônima",
+            age: "Idade não informada",
+            city: c.vitima && c.vitima.estadoResidencia ? `Localidade - ${c.vitima.estadoResidencia}` : "Não Informado",
+            urgency: c.tipoViolencia === "FISICA" || c.tipoViolencia === "SEXUAL" ? "Alta" : "Moderada",
+            violenceTypes: [mapViolenceType(c.tipoViolencia)],
+            date: c.timestampAbertura ? new Date(c.timestampAbertura).toLocaleDateString("pt-BR") : "Hoje",
+            status: "Em Atendimento" as const
+          }));
         setMyCases(activeCasesFormatted);
 
         localStorage.setItem("chat_accepted", "true");
@@ -218,6 +222,51 @@ export function DashboardAdvogado() {
       alert("Este caso simulado já foi aceito por outro advogado voluntário.");
     }
   };
+
+  const handleCloseCase = async (caseId: string) => {
+    if (!confirm("Deseja realmente encerrar este caso permanentemente? Esta ação arquivará o atendimento e removerá o histórico de mensagens por segurança.")) {
+      return;
+    }
+
+    const result = prompt("Por favor, informe a justificativa ou resultado do encerramento (obrigatório):", "Orientação concluída");
+    if (result === null) return;
+    const trimmedResult = result.trim();
+    if (!trimmedResult) {
+      alert("O resultado do encerramento é obrigatório!");
+      return;
+    }
+
+    if (caseId === "maria-oliveira") {
+      setMyCases(prev => prev.filter(c => c.id !== caseId));
+      localStorage.removeItem("chat_accepted");
+      localStorage.removeItem("chat_carlamendes");
+      localStorage.removeItem("active_case_id");
+      localStorage.removeItem("triage_completed");
+      setIsChatAccepted(false);
+      alert("Caso simulado encerrado com sucesso.");
+      return;
+    }
+
+    try {
+      await casoService.encerrarCaso(caseId, { resultado: trimmedResult });
+      
+      setMyCases(prev => prev.filter(c => c.id !== caseId));
+      
+      const activeId = localStorage.getItem("active_case_id");
+      if (activeId === caseId) {
+        localStorage.removeItem("chat_accepted");
+        localStorage.removeItem("chat_carlamendes");
+        localStorage.removeItem("active_case_id");
+        setIsChatAccepted(false);
+      }
+      
+      alert("Caso encerrado com sucesso. O histórico de mensagens foi apagado.");
+    } catch (err: any) {
+      console.error("Erro ao encerrar caso:", err);
+      alert(err.response?.data?.mensagem || "Erro ao encerrar o caso.");
+    }
+  };
+
 
   const handleResetSimulation = () => {
     if (confirm("Deseja resetar toda a simulação para os valores padrões?")) {
@@ -472,6 +521,13 @@ export function DashboardAdvogado() {
                       </div>
 
                       <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", borderTop: "1px solid var(--border)", paddingTop: "14px" }}>
+                        <button
+                          onClick={() => handleCloseCase(c.id)}
+                          className="btn btn-ghost"
+                          style={{ fontSize: "13.5px", padding: "8px 18px", color: "var(--wine)", borderColor: "var(--wine)" }}
+                        >
+                          <i className="fas fa-gavel"></i> Encerrar Caso
+                        </button>
                         <button
                           onClick={() => {
                             localStorage.setItem("chat_carlamendes", "true"); // Ensures chat is enabled

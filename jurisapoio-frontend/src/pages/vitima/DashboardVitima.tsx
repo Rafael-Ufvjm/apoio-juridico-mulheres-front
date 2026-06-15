@@ -305,6 +305,50 @@ export function DashboardVitima() {
     navigate("/chat");
   };
 
+  const handleCloseCase = async () => {
+    const activeCaseId = localStorage.getItem("active_case_id");
+    if (!activeCaseId) {
+      if (confirm("Deseja cancelar a sua triagem ativa local?")) {
+        localStorage.removeItem("triage_completed");
+        localStorage.removeItem("triage_urgency");
+        localStorage.removeItem("chat_accepted");
+        localStorage.removeItem("chat_carlamendes");
+        setTriageCompleted(false);
+        setLawyerAccepted(false);
+        alert("Caso encerrado com sucesso.");
+      }
+      return;
+    }
+
+    if (!confirm("Deseja realmente encerrar este caso permanentemente? Esta ação removerá a triagem e o histórico de mensagens por segurança.")) {
+      return;
+    }
+
+    const result = prompt("Por favor, informe o resultado ou justificativa do encerramento (obrigatório):", "Caso finalizado pelo usuário");
+    if (result === null) return;
+    const trimmedResult = result.trim();
+    if (!trimmedResult) {
+      alert("O resultado do encerramento é obrigatório!");
+      return;
+    }
+
+    try {
+      await casoService.encerrarCaso(activeCaseId, { resultado: trimmedResult });
+      localStorage.removeItem("active_case_id");
+      localStorage.removeItem("triage_completed");
+      localStorage.removeItem("triage_urgency");
+      localStorage.removeItem("chat_accepted");
+      localStorage.removeItem("chat_carlamendes");
+      setTriageCompleted(false);
+      setLawyerAccepted(false);
+      alert("Caso encerrado e histórico de mensagens apagado com sucesso.");
+    } catch (err: any) {
+      console.error("Erro ao encerrar caso:", err);
+      alert(err.response?.data?.mensagem || "Erro ao encerrar o caso.");
+    }
+  };
+
+
   return (
     <div className="page active" id="page-dashboard" style={{ paddingTop: "64px", minHeight: "100vh" }}>
       <div className="dashboard">
@@ -656,11 +700,20 @@ export function DashboardVitima() {
                     <h3 style={{ fontSize: "18px", color: "var(--wine)", marginBottom: "8px", fontFamily: "Playfair Display, serif" }}>Status de Atendimento Jurídico</h3>
                     
                     {!lawyerAccepted ? (
-                      <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "14px", background: "var(--warm)", borderRadius: "8px" }}>
-                        <i className="fas fa-spinner fa-spin" style={{ color: "var(--rose)", fontSize: "18px" }}></i>
-                        <span style={{ fontSize: "13.5px", color: "var(--slate)", fontWeight: "bold" }}>
-                          Buscando advogadas voluntárias disponíveis para aceitar o chamado...
-                        </span>
+                      <div>
+                        <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "14px", background: "var(--warm)", borderRadius: "8px", marginBottom: "16px" }}>
+                          <i className="fas fa-spinner fa-spin" style={{ color: "var(--rose)", fontSize: "18px" }}></i>
+                          <span style={{ fontSize: "13.5px", color: "var(--slate)", fontWeight: "bold" }}>
+                            Buscando advogadas voluntárias disponíveis para aceitar o chamado...
+                          </span>
+                        </div>
+                        <button 
+                          onClick={handleCloseCase} 
+                          className="btn btn-ghost w-full" 
+                          style={{ justifyContent: "center", color: "var(--wine)", borderColor: "var(--wine)", fontSize: "14px", padding: "10px 16px" }}
+                        >
+                          <i className="fas fa-times-circle"></i> Cancelar Chamado / Encerrar Caso
+                        </button>
                       </div>
                     ) : (
                       <div>
@@ -682,13 +735,23 @@ export function DashboardVitima() {
                           </div>
                         </div>
 
-                        <button 
-                          onClick={handleConnectAdvocate} 
-                          className="btn btn-wine w-full" 
-                          style={{ justifyContent: "center", fontSize: "15px", padding: "12px 20px" }}
-                        >
-                          <i className="fas fa-comments"></i> Iniciar Atendimento via Chat Seguro
-                        </button>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                          <button 
+                            onClick={handleConnectAdvocate} 
+                            className="btn btn-wine w-full" 
+                            style={{ justifyContent: "center", fontSize: "15px", padding: "12px 20px" }}
+                          >
+                            <i className="fas fa-comments"></i> Iniciar Atendimento via Chat Seguro
+                          </button>
+                          
+                          <button 
+                            onClick={handleCloseCase} 
+                            className="btn btn-ghost w-full" 
+                            style={{ justifyContent: "center", color: "var(--wine)", borderColor: "var(--wine)", fontSize: "14px", padding: "10px 16px" }}
+                          >
+                            <i className="fas fa-times-circle"></i> Encerrar Caso
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>

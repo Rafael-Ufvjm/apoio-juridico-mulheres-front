@@ -309,6 +309,42 @@ export function ChatSeguro() {
     alert("Conversa oculta com sucesso. Você ainda pode contatar o profissional através do seu painel.");
   };
 
+  const handleCloseCase = async () => {
+    const confirmMessage = "Deseja realmente encerrar este caso permanentemente? Esta ação arquivará o atendimento e removerá todo o histórico de mensagens por segurança.";
+    if (!confirm(confirmMessage)) return;
+
+    const result = prompt("Por favor, informe a justificativa ou resultado do encerramento (obrigatório):", "Orientação concluída");
+    if (result === null) return;
+    const trimmedResult = result.trim();
+    if (!trimmedResult) {
+      alert("O resultado do encerramento é obrigatório!");
+      return;
+    }
+
+    const activeCaseId = localStorage.getItem("active_case_id");
+    if (activeCaseId) {
+      try {
+        await casoService.encerrarCaso(activeCaseId, { resultado: trimmedResult });
+      } catch (err: any) {
+        console.error("Erro ao encerrar caso no backend:", err);
+      }
+    }
+
+    // Clean up local storage
+    localStorage.removeItem("chat_accepted");
+    localStorage.removeItem("chat_carlamendes");
+    localStorage.removeItem("active_case_id");
+    localStorage.removeItem("triage_completed");
+    localStorage.removeItem("triage_urgency");
+
+    // Clean up states
+    setActiveCase(null);
+    setContacts(prev => prev.filter(c => c.id !== 1));
+    setActiveContactId(2);
+
+    alert("Caso encerrado com sucesso. O histórico de mensagens foi apagado por segurança.");
+  };
+
 
   return (
     <div className="page active" id="page-chat" style={{ paddingTop: "64px", height: "100vh" }}>
@@ -371,14 +407,24 @@ export function ChatSeguro() {
                   <div className="chat-topbar-actions">
                     <button className="icon-btn" title="Informações" onClick={() => alert(userRole === "advogado" ? "Informações da Vítima" : "Informações da advogada voluntária")}><i className="fas fa-info-circle"></i></button>
                     {activeContact.id === 1 && (
-                      <button 
-                        className="icon-btn" 
-                        title="Excluir Chat" 
-                        onClick={handleDeleteChat} 
-                        style={{ color: "#d9534f", marginLeft: "8px" }}
-                      >
-                        <i className="fas fa-trash-alt"></i>
-                      </button>
+                      <>
+                        <button 
+                          className="icon-btn" 
+                          title="Encerrar Caso" 
+                          onClick={handleCloseCase} 
+                          style={{ color: "var(--wine)", marginLeft: "8px" }}
+                        >
+                          <i className="fas fa-gavel"></i>
+                        </button>
+                        <button 
+                          className="icon-btn" 
+                          title="Ocultar Conversa" 
+                          onClick={handleDeleteChat} 
+                          style={{ color: "#d9534f", marginLeft: "8px" }}
+                        >
+                          <i className="fas fa-trash-alt"></i>
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>
