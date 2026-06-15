@@ -87,7 +87,7 @@ export function DashboardAdvogado() {
           victimName: c.vitima ? c.vitima.nomeAnonimo : "Vítima Anônima",
           age: "Idade não informada",
           city: c.vitima && c.vitima.estadoResidencia ? `Localidade - ${c.vitima.estadoResidencia}` : "Não Informado",
-          urgency: c.tipoViolencia === "FISICA" || c.tipoViolencia === "SEXUAL" ? "Alta" : "Moderada",
+          urgency: (c.tipoViolencia === "FISICA" || c.tipoViolencia === "SEXUAL" ? "Alta" : "Moderada") as "Alta" | "Moderada",
           violenceTypes: [mapViolenceType(c.tipoViolencia)],
           date: c.timestampAbertura ? new Date(c.timestampAbertura).toLocaleDateString("pt-BR") : "Hoje",
           status: "Pendente" as const
