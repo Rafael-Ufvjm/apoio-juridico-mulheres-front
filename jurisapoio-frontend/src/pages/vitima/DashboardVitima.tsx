@@ -16,7 +16,7 @@ interface Message {
 
 export function DashboardVitima() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<"overview" | "triagem" | "status" | "msgs">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "triagem" | "msgs">("overview");
 
   // Victim profile state
   const [victimName, setVictimName] = useState("Maria Oliveira");
@@ -334,13 +334,6 @@ export function DashboardVitima() {
               <i className="fas fa-clipboard-list w-5 text-center"></i> Triagem e Suporte
             </button>
 
-            <button
-              onClick={() => setActiveTab("status")}
-              className={`w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition ${activeTab === "status" ? "bg-white/10 text-white font-medium" : "text-white/70 hover:bg-white/5 hover:text-white"}`}
-              style={{ background: activeTab === "status" ? "rgba(255,255,255,0.12)" : "transparent", color: "#fff", border: "none", cursor: "pointer", font: "inherit" }}
-            >
-              <i className="fas fa-tasks w-5 text-center"></i> Status do Caso
-            </button>
             <button
               onClick={() => {
                 setActiveTab("msgs");
@@ -704,56 +697,7 @@ export function DashboardVitima() {
             </div>
           )}
 
-          {/* STATUS TAB */}
-          {activeTab === "status" && (
-            <div id="dash-status" className="dash-tab active">
-              <div className="dash-header">
-                <h2>Status do Caso</h2>
-                <span className="badge badge-wine">Em andamento</span>
-              </div>
-              <div style={{ background: "var(--white)", border: "1px solid var(--border)", borderRadius: "var(--r2)", padding: "28px", boxShadow: "var(--shadow)" }}>
-                <div className="status-bar" style={{ marginBottom: "28px" }}>
-                  <div className="status-step done"><div className="status-dot"><i className="fas fa-check"></i></div><p>BO Registrado</p></div>
-                  <div className="status-step done"><div className="status-dot"><i className="fas fa-check"></i></div><p>Caso aberto</p></div>
-                  <div className="status-step done"><div className="status-dot"><i className="fas fa-check"></i></div><p>Advogada atribuída</p></div>
-                  <div className="status-step active"><div className="status-dot"><i className="fas fa-gavel"></i></div><p>Medida protetiva</p></div>
-                  <div className="status-step"><div className="status-dot">5</div><p>Audiência</p></div>
-                  <div className="status-step"><div className="status-dot">6</div><p>Encerramento</p></div>
-                </div>
-                <h4 style={{ color: "var(--wine)", marginBottom: "14px" }}>Linha do tempo</h4>
-                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                  <div style={{ display: "flex", gap: "14px", alignItems: "flex-start" }}>
-                    <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "var(--green)", marginTop: "5px", flexShrink: 0 }}></div>
-                    <div>
-                      <strong style={{ fontSize: "13.5px" }}>15/05/2025 — Boletim de Ocorrência registrado</strong>
-                      <p style={{ fontSize: "13px", color: "var(--mid)" }}>Delegacia da Mulher de São Paulo — protocolo #2025-04821</p>
-                    </div>
-                  </div>
-                  <div style={{ display: "flex", gap: "14px", alignItems: "flex-start" }}>
-                    <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "var(--green)", marginTop: "5px", flexShrink: 0 }}></div>
-                    <div>
-                      <strong style={{ fontSize: "13.5px" }}>16/05/2025 — Caso aberto na plataforma</strong>
-                      <p style={{ fontSize: "13px", color: "var(--mid)" }}>{assignedLawyerName ? `${assignedLawyerName} atribuída ao caso` : "Advogada voluntária atribuída ao caso"}</p>
-                    </div>
-                  </div>
-                  <div style={{ display: "flex", gap: "14px", alignItems: "flex-start" }}>
-                    <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "var(--green)", marginTop: "5px", flexShrink: 0 }}></div>
-                    <div>
-                      <strong style={{ fontSize: "13.5px" }}>18/05/2025 — Medida protetiva deferida</strong>
-                      <p style={{ fontSize: "13px", color: "var(--mid)" }}>Juíza determinou afastamento de 300m e proibição de contato</p>
-                    </div>
-                  </div>
-                  <div style={{ display: "flex", gap: "14px", alignItems: "flex-start" }}>
-                    <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "var(--wine)", marginTop: "5px", flexShrink: 0 }}></div>
-                    <div>
-                      <strong style={{ fontSize: "13.5px", color: "var(--wine)" }}>28/05/2025 — Audiência judicial agendada (próxima etapa)</strong>
-                      <p style={{ fontSize: "13px", color: "var(--mid)" }}>Vara de Violência Doméstica — Fórum Central de SP, 14h</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+
 
           {/* MESSAGES TAB */}
           {activeTab === "msgs" && (
