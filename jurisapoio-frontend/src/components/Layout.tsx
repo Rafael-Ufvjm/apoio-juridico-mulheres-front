@@ -52,6 +52,13 @@ export function Layout() {
             )}
 
             <Link to="/dashboard" className="nav-cta btn">Solicitar Ajuda</Link>
+            <button 
+              onClick={() => window.location.replace("https://www.oboticario.com.br/")} 
+              className="btn-emergency"
+              title="Clique para sair rapidamente e ir para o site de O Boticário"
+            >
+              🚪 Saída de Emergência
+            </button>
           </div>
         </div>
       </nav>

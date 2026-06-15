@@ -14,6 +14,13 @@ export function Home() {
           <Link className="btn btn-primary" to="/dashboard">
             <i className="fas fa-hands-helping"></i> Solicitar Ajuda Agora
           </Link>
+          <button 
+            onClick={() => window.location.replace("https://www.oboticario.com.br/")} 
+            className="btn-emergency-hero"
+            title="Clique para sair rapidamente e ir para o site de O Boticário"
+          >
+            <i className="fas fa-door-open"></i> Saída de Emergência
+          </button>
           <Link className="btn btn-outline" to="/orientacao">
             <i className="fas fa-book-open"></i> Conhecer Meus Direitos
           </Link>
