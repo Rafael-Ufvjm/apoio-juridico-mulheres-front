@@ -291,38 +291,22 @@ export function ChatSeguro() {
     setInputVal("");
   };
 
-  const handleDeleteChat = async () => {
+  const handleDeleteChat = () => {
     const confirmMessage = userRole === "advogado" 
-      ? "Deseja realmente excluir este chat? Isso encerrará o atendimento e apagará o histórico de mensagens por segurança."
-      : "Deseja realmente excluir esta conversa com o advogado? Isso encerrará o seu caso e apagará todo o histórico de mensagens por segurança.";
+      ? "Deseja realmente ocultar esta conversa? Você poderá reabri-la a qualquer momento pelo seu painel."
+      : "Deseja realmente ocultar esta conversa? Você poderá contatar o advogado voluntário novamente a qualquer momento através do seu painel.";
       
     if (!confirm(confirmMessage)) return;
 
-    const activeCaseId = localStorage.getItem("active_case_id");
-
-    if (activeCaseId) {
-      try {
-        await casoService.encerrarCaso(activeCaseId, { 
-          resultado: "Atendimento encerrado e chat excluído pelo usuário." 
-        });
-      } catch (err) {
-        console.warn("Erro ao encerrar caso no backend. Removendo localmente...", err);
-      }
-    }
-
-    // Clean up local storage
-    localStorage.removeItem("chat_accepted");
+    // We do NOT call encerrarCaso and do NOT remove active_case_id/triage_completed.
+    // We only remove the visibility flag so the chat disappears from the active chat list.
     localStorage.removeItem("chat_carlamendes");
-    localStorage.removeItem("active_case_id");
-    localStorage.removeItem("triage_completed");
-    localStorage.removeItem("triage_urgency");
 
-    // Clean up local states
-    setActiveCase(null);
+    // Clean up local states for the active screen
     setContacts(prev => prev.filter(c => c.id !== 1));
     setActiveContactId(2);
 
-    alert("Conversa excluída e caso encerrado com sucesso.");
+    alert("Conversa oculta com sucesso. Você ainda pode contatar o profissional através do seu painel.");
   };
 
 
