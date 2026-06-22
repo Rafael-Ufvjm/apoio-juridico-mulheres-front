@@ -31,7 +31,7 @@ export function Login() {
   const [advUf, setAdvUf] = useState("SP");
   const [advEspecialidade, setAdvEspecialidade] = useState("Violência Doméstica");
   const [advSenha, setAdvSenha] = useState("");
-  
+
   // Form submitting/loading states
   const [isVerifyingOab, setIsVerifyingOab] = useState(false);
 
@@ -92,10 +92,10 @@ export function Login() {
         alert("E-mail ou senha inválidos.");
         return;
       }
-      
+
       // Backend auth failed (offline/network). Fallback to localStorage simulation
       console.warn("Autenticação com o backend falhou. Tentando simulação local...", loginError);
-      
+
       if (role === "vitima") {
         // Simulate local login
         await login({ email, senha }, "vitima");
@@ -156,17 +156,17 @@ export function Login() {
         estadoResidencia: "MG", // Default value
         aceitouTermos: true
       });
-      alert("Cadastro de Vítima realizado com sucesso! Realizando login automático...");
+      alert("Cadastro de Usuário realizado com sucesso! Realizando login automático...");
       await login({ email: regEmail, senha: regSenha }, "vitima");
       navigate("/dashboard");
     } catch (error: any) {
       if (error && error.response) {
-        const backendMessage = error.response.data?.mensagem || "Erro ao cadastrar vítima no servidor.";
+        const backendMessage = error.response.data?.mensagem || "Erro ao cadastrar usuário no servidor.";
         alert(`Erro no cadastro: ${backendMessage}`);
         return;
       }
       console.warn("Erro no cadastro pelo backend. Usando fallback simulado...", error);
-      alert("Cadastro de Vítima realizado com sucesso! Você já pode entrar.");
+      alert("Cadastro de Usuário realizado com sucesso! Você já pode entrar.");
       setEmail(regEmail);
       setIsRegistering(false);
     }
@@ -203,7 +203,7 @@ export function Login() {
         return;
       }
       console.warn("Erro no cadastro de advogado pelo backend. Usando fallback simulado...", error);
-      
+
       const existingLawyersStr = localStorage.getItem("juris_lawyers");
       const existingLawyers = existingLawyersStr ? JSON.parse(existingLawyersStr) : [];
 
@@ -235,7 +235,7 @@ export function Login() {
       localStorage.setItem("juris_lawyers", JSON.stringify(existingLawyers));
 
       alert("Cadastro realizado com sucesso! Sua solicitação foi enviada ao administrador do sistema.");
-      
+
       setEmail(advEmail);
       setIsRegistering(false);
       setIsVerifyingOab(false);
@@ -248,8 +248,8 @@ export function Login() {
   return (
     <div className="min-h-screen bg-cream flex flex-col items-center justify-center p-4">
       {/* Back to Home Link */}
-      <Link 
-        to="/" 
+      <Link
+        to="/"
         className="mb-4 text-wine hover:text-wine2 font-medium flex items-center gap-2 transition text-sm decoration-transparent"
         style={{ textDecoration: "none", color: "var(--wine)" }}
       >
@@ -274,7 +274,7 @@ export function Login() {
                 fontFamily: "inherit"
               }}
             >
-              <i className="fas fa-user-shield"></i> Sou Vítima
+              <i className="fas fa-user-shield"></i>
             </button>
             <button
               onClick={() => setRole("advogado")}
@@ -290,7 +290,7 @@ export function Login() {
                 fontFamily: "inherit"
               }}
             >
-              <i className="fas fa-user-tie"></i> Sou Advogado
+              <i className="fas fa-user-tie"></i>
             </button>
           </div>
         )}
@@ -301,7 +301,7 @@ export function Login() {
               // VICTIM REGISTER FORM
               <form onSubmit={handleVictimRegister}>
                 <h1 className="text-3xl font-bold text-wine mb-2" style={{ fontFamily: "Playfair Display, serif" }}>
-                  Criar Conta (Vítima)
+                  Criar Conta
                 </h1>
                 <p className="text-sm text-mid mb-6" style={{ color: "var(--mid)" }}>Cadastre-se de forma segura e 100% anônima.</p>
 
@@ -443,7 +443,7 @@ export function Login() {
                   </div>
                 </div>
 
-                 <div className="mb-4">
+                <div className="mb-4">
                   <label className="block text-xs font-semibold mb-1" style={{ color: "var(--slate)" }}>Especialidade Principal</label>
                   <select
                     value={advEspecialidade}
@@ -500,11 +500,11 @@ export function Login() {
             // LOGIN FORM (SHARED CARD WITH TABS)
             <form onSubmit={handleLoginSubmit}>
               <h1 className="text-3xl font-bold text-wine mb-2" style={{ fontFamily: "Playfair Display, serif" }}>
-                Entrar ({role === "vitima" ? "Vítima" : "Advogado"})
+                Entrar
               </h1>
               <p className="text-sm text-mid mb-6" style={{ color: "var(--mid)" }}>
-                {role === "vitima" 
-                  ? "Acesse sua área restrita segura de forma anônima." 
+                {role === "vitima"
+                  ? "Acesse sua área restrita segura de forma anônima."
                   : "Acesse o painel de atendimentos voluntários."
                 }
               </p>

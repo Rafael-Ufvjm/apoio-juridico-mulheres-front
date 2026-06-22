@@ -29,6 +29,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:999;background:var(--white);bord
 .logo-icon{width:36px;height:36px;background:var(--wine);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px}
 .logo-text{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--wine)}
 .logo-sub{font-size:10px;color:var(--mid);letter-spacing:.06em;text-transform:uppercase;margin-top:-2px}
+.menu-toggle{display:none}
 .nav-links{display:flex;gap:4px;align-items:center}
 .nav-links a{font-size:13.5px;font-weight:500;color:var(--mid);text-decoration:none;padding:6px 14px;border-radius:6px;transition:.2s;cursor:pointer;white-space:nowrap;flex-shrink:0}
 .nav-links a:hover, .nav-links a.active{color:var(--wine);background:var(--blush)}
@@ -269,6 +270,56 @@ footer{background:var(--wine3);color:rgba(255,255,255,.8);padding:56px 24px 32px
   .footer-grid{grid-template-columns:1fr 1fr}
   .banner{flex-direction:column;text-align:center}
   .hero-stats{gap:28px}
+
+  .menu-toggle {
+    display: block;
+    background: none;
+    border: none;
+    font-size: 22px;
+    color: var(--wine);
+    cursor: pointer;
+    padding: 8px;
+    transition: transform 0.2s;
+  }
+  .menu-toggle:active {
+    transform: scale(0.9);
+  }
+  .nav-links {
+    display: none;
+    flex-direction: column;
+    position: absolute;
+    top: 64px;
+    left: 0;
+    right: 0;
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 24px;
+    gap: 8px;
+    box-shadow: 0 8px 24px rgba(80,4,22,.12);
+    align-items: stretch;
+    z-index: 998;
+  }
+  .nav-links.open {
+    display: flex;
+  }
+  .nav-links a, .nav-links button.btn-logout {
+    width: 100%;
+    text-align: left;
+    padding: 10px 14px !important;
+    font-size: 14.5px !important;
+  }
+  .nav-cta {
+    margin-left: 0 !important;
+    text-align: center;
+    justify-content: center;
+    padding: 10px 18px !important;
+  }
+  .btn-emergency {
+    margin-left: 0 !important;
+    text-align: center;
+    justify-content: center;
+    padding: 10px 18px !important;
+  }
 }
 .tabs-bar{display:flex;gap:0;background:var(--white);border-bottom:1px solid var(--border);padding:0 32px;overflow-x:auto}
 .tab-btn{padding:14px 20px;font-size:13.5px;font-weight:500;color:var(--mid);cursor:pointer;border-bottom:2.5px solid transparent;white-space:nowrap;transition:.2s;font-family:'DM Sans',sans-serif;background:none;border-top:none;border-left:none;border-right:none}
